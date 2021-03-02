@@ -1,14 +1,22 @@
 package com.tigergraph.spark_connector
 
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object SparkSlowFlakeReadDataDemo {
+object SparkSnowFlakeReadDataDemo extends Logging{
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
       .appName(this.getClass.getCanonicalName)
       .master("local[*]")
       .getOrCreate()
     spark.sparkContext.setLogLevel("warn")
+
+    logError("--------------****-----------")
+    logError("--------------****-----------")
+    logError("--------------error-----------")
+    logError("--------------****-----------")
+    logError("--------------****-----------")
+
 
     val SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
     //
@@ -26,7 +34,7 @@ object SparkSlowFlakeReadDataDemo {
     val df: DataFrame = spark.read
       .format(SNOWFLAKE_SOURCE_NAME)
       .options(sfOptions)
-      .option("dbtable", "careplans")
+      .option("dbtable", "patients")
       .load()
 
     df.show()

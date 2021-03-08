@@ -11,8 +11,7 @@ trait Reader {
   val properties = new Properties()
   val DBTABLE = "dbtable"
 
-  def init() = {
-    val path = Thread.currentThread().getContextClassLoader.getResource("connector.properties").getPath
+  def init(path:String) = {
     properties.load(new FileInputStream(path))
   }
 

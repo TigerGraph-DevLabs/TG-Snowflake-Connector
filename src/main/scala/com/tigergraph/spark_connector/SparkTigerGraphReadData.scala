@@ -2,7 +2,7 @@ package com.tigergraph.spark_connector
 
 import org.apache.spark.sql.SparkSession
 
-object SparkTigerGraphReadDataDemo {
+object SparkTigerGraphReadData {
   def main(args: Array[String]): Unit = {
 
     val spark = SparkSession.builder()

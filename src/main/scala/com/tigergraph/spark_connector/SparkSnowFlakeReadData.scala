@@ -3,7 +3,7 @@ package com.tigergraph.spark_connector
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object SparkSnowFlakeReadDataDemo extends Logging{
+object SparkSnowFlakeReadData extends Logging{
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
       .appName(this.getClass.getCanonicalName)
@@ -34,7 +34,7 @@ object SparkSnowFlakeReadDataDemo extends Logging{
     val df: DataFrame = spark.read
       .format(SNOWFLAKE_SOURCE_NAME)
       .options(sfOptions)
-      .option("dbtable", "patients")
+      .option("dbtable", "medications")
       .load()
 
     df.show()

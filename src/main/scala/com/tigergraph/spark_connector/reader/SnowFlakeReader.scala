@@ -8,7 +8,7 @@ import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
 
 import scala.collection.mutable.ArrayBuffer
 
-class SnowFlakeReader(val readerName: String) extends Reader with Cloneable with Logging with Serializable {
+class SnowFlakeReader(val readerName: String, val path:String) extends Reader with Cloneable with Logging with Serializable {
 
   private val sfConf = new ConcurrentHashMap[String, String]()
   private val tables = new ArrayBuffer[String]()
@@ -23,9 +23,10 @@ class SnowFlakeReader(val readerName: String) extends Reader with Cloneable with
   private val SF_DBTABLE = "sfDbtable"
   private var TBSTRING = ""
 
-  def this() = {
-    this("SfReader")
-    init()
+  def this(path:String) = {
+    // default parameters
+    this("SfReader", path)
+    init(path)
     initSfConf()
   }
 

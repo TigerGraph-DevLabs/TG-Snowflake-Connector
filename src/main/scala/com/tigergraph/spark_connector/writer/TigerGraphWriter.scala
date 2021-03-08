@@ -25,12 +25,6 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
   private val BATCHSIZE = "batchsize"
   private val DEBUG = "debug"
 
-  //  def this() = {
-  //    this(true, "/connector/connector.properties")
-  //    init()
-  //    initSfConf()
-  //  }
-
   def this(configPath: String) = {
     this(true, configPath)
     init()

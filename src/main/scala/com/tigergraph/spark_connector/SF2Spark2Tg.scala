@@ -99,7 +99,7 @@ object SF2Spark2Tg {
 
   def main(args: Array[String]): Unit = {
 
-    if(args == null || args.length == 0){
+    if (args == null || args.length == 0) {
       println("no config path")
       return
     }
@@ -113,9 +113,6 @@ object SF2Spark2Tg {
 
     val spark = SparkSession.builder()
       .appName(this.getClass.getCanonicalName)
-      //      .config("spark.cores.max","6")
-      //      .config("spark.testing.memory", "512000000")
-      //      .master("local[*]")
       .getOrCreate()
     spark.sparkContext.setLogLevel("warn")
 

@@ -1,17 +1,20 @@
 package com.tigergraph.spark_connector.writer
 
 import java.io.FileInputStream
-import java.util.Properties
+import java.util
 import java.util.concurrent.ConcurrentHashMap
 
 import org.apache.commons.lang.StringUtils
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Row}
+import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.Constructor
 
 
 class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Cloneable with Logging with Serializable {
   private val tgConf = new ConcurrentHashMap[String, String]()
-  val properties = new Properties()
+
+  var config: util.HashMap[String, Object] = _
 
   private val SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
   private val DRIVER = "driver"
@@ -24,6 +27,7 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
   private val EOL = "eol"
   private val BATCHSIZE = "batchsize"
   private val DEBUG = "debug"
+  private val NUM_PARTITIONS = "numPartitions"
 
   def this(configPath: String) = {
     this(true, configPath)
@@ -32,24 +36,30 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
   }
 
   def init() = {
-    properties.load(new FileInputStream(configPath))
+    val yaml = new Yaml(new Constructor(classOf[util.HashMap[String, Object]]))
+    config = yaml.load(new FileInputStream(configPath)).asInstanceOf[util.HashMap[String, Object]]
   }
 
   private def initSfConf(): Unit = {
-    tgConf.put(DRIVER, properties.getProperty(DRIVER))
-    tgConf.put(URL, properties.getProperty(URL))
-    tgConf.put(USERNAME, properties.getProperty(USERNAME))
-    tgConf.put(PASSWORD, properties.getProperty(PASSWORD))
-    tgConf.put(GRAPH, properties.getProperty(GRAPH))
-    tgConf.put(FILE_NAME, properties.getProperty(FILE_NAME))
-    tgConf.put(SEP, properties.getProperty(SEP))
-    tgConf.put(EOL, properties.getProperty(EOL))
-    tgConf.put(BATCHSIZE, properties.getProperty(BATCHSIZE))
-    tgConf.put(DEBUG, properties.getProperty(DEBUG))
+    tgConf.put(DRIVER, config.get(DRIVER).toString)
+    tgConf.put(URL, config.get(URL).toString)
+    tgConf.put(USERNAME, config.get(USERNAME).toString)
+    tgConf.put(PASSWORD, config.get(PASSWORD).toString)
+    tgConf.put(GRAPH, config.get(GRAPH).toString)
+    tgConf.put(FILE_NAME, config.getOrDefault(FILE_NAME, "").toString)
+    tgConf.put(SEP, config.getOrDefault(SEP, "").toString)
+    tgConf.put(EOL, config.getOrDefault(EOL, "\n").toString)
+    tgConf.put(EOL, "\n")
+    tgConf.put(BATCHSIZE, config.getOrDefault(BATCHSIZE, "").toString)
+    tgConf.put(DEBUG, config.getOrDefault(DEBUG, "").toString)
+    tgConf.put(NUM_PARTITIONS, config.getOrDefault(NUM_PARTITIONS, "1").toString)
   }
 
-  def
-  write(df: DataFrame, dbtable: String, schema: String): Unit = {
+  def insertData(data: Iterator[(Int, Row)]): Unit = {
+
+  }
+
+  def write(df: DataFrame, dbtable: String, schema: String): Unit = {
     checkTgConf
 
     df.write.mode("overwrite").format("jdbc")

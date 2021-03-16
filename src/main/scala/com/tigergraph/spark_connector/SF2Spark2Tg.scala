@@ -2,15 +2,18 @@ package com.tigergraph.spark_connector
 
 
 import java.io.FileInputStream
-import java.util.Properties
-import java.util.concurrent.Executors
+import java.util
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.{Future => _, _}
 
 import com.tigergraph.spark_connector.reader.{Reader, SnowFlakeReader}
-import com.tigergraph.spark_connector.utils.MapUtil
+import com.tigergraph.spark_connector.utils.ProgressUtil
 import com.tigergraph.spark_connector.writer.TigerGraphWriter
-import net.minidev.json.JSONObject
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.functions.{col, date_format}
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
+import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.Constructor
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
@@ -19,27 +22,32 @@ import scala.concurrent.duration._
 object SF2Spark2Tg {
 
   // default path
-  var CONFIG_PATH: String = "/connector/connector.properties"
+  var CONFIG_PATH: String = _
+  val totalNum: AtomicLong = new AtomicLong(1)
+  val successNum: AtomicLong = new AtomicLong(0)
+  var statusChange: Boolean = false
 
-  def dfFilteredAndFormatted(oldDF: DataFrame, filteredStr: String, formattedStr: String): DataFrame = {
+  val sf2Spark2TgLog = java.util.logging.Logger.getLogger("SF2Spark2Tg")
+
+  val loadSuccessLogger = Logger.getLogger("loadSuccess")
+  val loadBeginLogger = Logger.getLogger("loadBegin")
+  val progressLogger = Logger.getLogger("progress")
+
+  Logger.getLogger("loadSuccess").setLevel(Level.INFO)
+  Logger.getLogger("loadBegin").setLevel(Level.INFO)
+  Logger.getLogger("progress").setLevel(Level.INFO)
+
+  def dfFilteredAndFormatted(oldDF: DataFrame, filteredStr: String): DataFrame = {
 
     var snowFlakeColumns = ArrayBuffer[String]()
-    var tigerColumns = ArrayBuffer[String]()
 
     filteredStr.split(",").foreach(column => {
       snowFlakeColumns += column
     })
 
-    formattedStr.split(",").foreach(column => {
-      tigerColumns += column
-    })
 
     val filteredDF = oldDF.select(snowFlakeColumns.map(oldDF.col(_)): _*)
-    var dfMiddle = oldDF
-
-    val columnsRenamed = tigerColumns.toIndexedSeq
-    // rename snowFlake's  dataFrame column name to tigerGraph column name
-    dfMiddle = filteredDF.toDF(columnsRenamed: _*)
+    var dfMiddle = filteredDF
 
     // select date type
     val dateArray = dfMiddle.schema.filter(schema => {
@@ -70,30 +78,28 @@ object SF2Spark2Tg {
 
   def writeDF2Tiger(spark: SparkSession, df: DataFrame, table: String)(implicit xc: ExecutionContext) = Future {
 
-    val properties = new Properties()
+    val startTime = System.currentTimeMillis()
+    val yaml = new Yaml(new Constructor(classOf[util.HashMap[String, Object]]))
+    val config = yaml.load(new FileInputStream(CONFIG_PATH)).asInstanceOf[util.HashMap[String, Object]]
 
-    properties.load(new FileInputStream(CONFIG_PATH))
+    val sf2TigerKV = config.get("mappingRules")
+      .asInstanceOf[util.HashMap[String, Object]].get(table).asInstanceOf[util.HashMap[String, Object]]
 
-    println("-" * 50)
-    println(s"${table} begin load data")
-
-    // snowFlake column name -> tigerGraph column name
-    val sf2TigerKV = MapUtil.convertString2Map(properties.get(table).toString)
+    loadBeginLogger.info(s"[ ${table} ] begin load data")
 
     val jobName = sf2TigerKV.get("dbtable").toString
 
-    val tigerMap = sf2TigerKV.get("jobConfig").asInstanceOf[JSONObject]
+    val tigerMap = sf2TigerKV.get("jobConfig").asInstanceOf[util.HashMap[String, Object]]
     val sfColumnStr = tigerMap.get("sfColumn").toString
-    val tigerColumnStr = tigerMap.get("tigerColumn").toString
-    val dfFormatted = dfFilteredAndFormatted(df, sfColumnStr, tigerColumnStr)
+    val dfFormatted = dfFilteredAndFormatted(df, sfColumnStr)
 
     val tgWriter: TigerGraphWriter = new TigerGraphWriter(CONFIG_PATH)
 
-    tgWriter.write(dfFormatted, jobName, tigerColumnStr)
+    tgWriter.write(dfFormatted, jobName, sfColumnStr)
 
-
-    println(s"${table} load success......")
-    println("=" * 50)
+    successNum.getAndIncrement()
+    statusChange = true
+    loadSuccessLogger.info(s"[ ${table} ] load success, consume time: ${(System.currentTimeMillis() - startTime) / 1000} s")
 
   }
 
@@ -111,13 +117,14 @@ object SF2Spark2Tg {
 
     CONFIG_PATH = path
 
-    val spark = SparkSession.builder()
-      .appName(this.getClass.getCanonicalName)
-      .getOrCreate()
+    val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
+
     spark.sparkContext.setLogLevel("warn")
 
+
     // Set number of threads via a configuration property
-    val pool = Executors.newFixedThreadPool(10)
+    val pool = Executors.newFixedThreadPool(30)
+    val singlePool = Executors.newSingleThreadExecutor()
 
     // create the implicit ExecutionContext based on our thread pool
     implicit val xc = ExecutionContext.fromExecutorService(pool)
@@ -130,16 +137,50 @@ object SF2Spark2Tg {
 
     for (table <- tables) {
       val df: DataFrame = sfReader.readTable(dfReader, table)
+
       val task = writeDF2Tiger(spark, df, table)
       tasks += task
     }
 
+    totalNum.set(tables.length)
+    val future = singlePool.submit(new Callable[Unit]() {
+
+      override def call(): Unit = {
+        var flag = true
+
+        var remainTime = 5000
+        var lastLogTime = System.currentTimeMillis()
+
+        while (flag) {
+          // 1 second check once
+          Thread.sleep(1000)
+          // If there is a successful write or more than 5S after the last print
+          if (statusChange || (System.currentTimeMillis() - lastLogTime) > 5000) {
+            val success = successNum.get()
+            val total = totalNum.get()
+
+            progressLogger.info(ProgressUtil.drawLine((success * 100 / total).toInt))
+
+            if (success == total) {
+              flag = false
+            }
+            // put status to false, represent one write success flag
+            statusChange = false
+            lastLogTime = System.currentTimeMillis()
+          }
+        }
+
+      }
+    })
+
+
     // await task complete
     Await.result(Future.sequence(tasks), Duration(1, HOURS))
 
-    spark.close()
-    println("The total time consuming:" + (System.currentTimeMillis() - startTime) / 1000 + "s")
     pool.shutdown()
+    singlePool.shutdown()
+    spark.close()
+    progressLogger.info("The total time consuming:" + (System.currentTimeMillis() - startTime) / 1000 + "s")
 
   }
 

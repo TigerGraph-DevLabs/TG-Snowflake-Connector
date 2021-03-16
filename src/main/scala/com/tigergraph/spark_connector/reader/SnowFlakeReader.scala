@@ -1,14 +1,17 @@
 package com.tigergraph.spark_connector.reader
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util
 
 import org.apache.commons.lang.StringUtils
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConversions._
 
-class SnowFlakeReader(val readerName: String, val path:String) extends Reader with Cloneable with Logging with Serializable {
+
+class SnowFlakeReader(val readerName: String, val path: String) extends Reader with Cloneable with Logging with Serializable {
 
   private val sfConf = new ConcurrentHashMap[String, String]()
   private val tables = new ArrayBuffer[String]()
@@ -21,9 +24,8 @@ class SnowFlakeReader(val readerName: String, val path:String) extends Reader wi
   private val SF_SCHEMA = "sfSchema"
   private val SF_WAREHOUSE = "sfWarehouse"
   private val SF_DBTABLE = "sfDbtable"
-  private var TBSTRING = ""
 
-  def this(path:String) = {
+  def this(path: String) = {
     // default parameters
     this("SfReader", path)
     init(path)
@@ -31,13 +33,18 @@ class SnowFlakeReader(val readerName: String, val path:String) extends Reader wi
   }
 
   private def initSfConf(): Unit = {
-    sfConf.put(SF_URL, properties.getProperty(SF_URL))
-    sfConf.put(SF_USER, properties.getProperty(SF_USER))
-    sfConf.put(SF_PASSWORD, properties.getProperty(SF_PASSWORD))
-    sfConf.put(SF_DATABASE, properties.getProperty(SF_DATABASE))
-    sfConf.put(SF_SCHEMA, properties.getProperty(SF_SCHEMA))
-    sfConf.put(SF_WAREHOUSE, properties.getProperty(SF_WAREHOUSE))
-    TBSTRING = properties.getProperty(SF_DBTABLE)
+    sfConf.put(SF_URL, config.get(SF_URL).toString)
+    sfConf.put(SF_USER, config.get(SF_USER).toString)
+    sfConf.put(SF_PASSWORD, config.get(SF_PASSWORD).toString)
+    sfConf.put(SF_DATABASE, config.get(SF_DATABASE).toString)
+    sfConf.put(SF_SCHEMA, config.get(SF_SCHEMA).toString)
+    sfConf.put(SF_WAREHOUSE, config.getOrDefault(SF_WAREHOUSE, "").toString)
+    val tableList: util.List[String] = config.get(SF_DBTABLE).asInstanceOf[util.List[String]]
+    if (tableList != null) {
+      for (elem <- tableList) {
+        tables += elem
+      }
+    }
   }
 
   override def reader(spark: SparkSession): DataFrameReader = {
@@ -49,17 +56,22 @@ class SnowFlakeReader(val readerName: String, val path:String) extends Reader wi
   }
 
   override def getTables(): ArrayBuffer[String] = {
-    if (StringUtils.isNotEmpty(TBSTRING) && tables.size < 1) {
-      tables ++= TBSTRING.split(",").map(_.trim)
-    } else {
-      throw new NullPointerException("null snow flake table")
-    }
     tables
   }
 
   override def readTable(df: DataFrameReader, table: String): DataFrame = {
     df.option(DBTABLE, table)
       .load()
+  }
+
+  def getTableAccount(df: DataFrameReader, table: String): Long = {
+    val startTime = System.currentTimeMillis()
+
+    println("count " + table + ": " + df.option("query", "SELECT count(*) AS count FROM " + table)
+      .load().limit(1).collect()(0).get(0))
+
+    println((System.currentTimeMillis() - startTime) / 1000)
+    0
   }
 
   /** Set a configuration variable. */

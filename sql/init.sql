@@ -10,7 +10,7 @@ use tg_spark;
 
 
 -- create schema
-CREATE SCHEMA synthea10k;
+CREATE SCHEMA synthea30g;
 
 
 -- create file format & stage
@@ -23,11 +23,11 @@ CREATE OR REPLACE file format mycsvformat
 CREATE or REPLACE stage my_csv_stage
   file_format = mycsvformat;
 
-PUT file:///10k_synthea_covid19_csv/\*.csv @my_csv_stage auto_compress=true;
+PUT file:///10k_synthea_covID19_csv/\*.csv @my_csv_stage auto_compress=true;
 
 
 -- creata tables & load data
-CREATE TABLE synthea10k.allergies(
+CREATE TABLE synthea30g.allergies(
 	"START" date, 
 	"STOP" date, 
 	"PATIENT" varchar(36), 
@@ -35,14 +35,14 @@ CREATE TABLE synthea10k.allergies(
 	"CODE" varchar(20), 
 	"DESCRIPTION" varchar(128)
 	);
-COPY INTO synthea10k.allergies
+COPY INTO synthea30g.allergies
   FROM @my_csv_stage/allergies.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.careplans(
-	"Id" varchar(36),
+CREATE TABLE synthea30g.careplans(
+	"ID" varchar(36),
 	"START" date, 
 	"STOP" date, 
 	"PATIENT" varchar(36), 
@@ -52,13 +52,13 @@ CREATE TABLE synthea10k.careplans(
 	"REASONCODE" varchar(20), 
 	"REASONDESCRIPTION" varchar(128)
 	);
-COPY INTO synthea10k.careplans
+COPY INTO synthea30g.careplans
   FROM @my_csv_stage/careplans.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.conditions(
+CREATE TABLE synthea30g.conditions(
 	"START" date, 
 	"STOP" date, 
 	"PATIENT" varchar(36), 
@@ -66,13 +66,13 @@ CREATE TABLE synthea10k.conditions(
 	"CODE" varchar(20), 
 	"DESCRIPTION" varchar(128)
 	);
-COPY INTO synthea10k.conditions
+COPY INTO synthea30g.conditions
   FROM @my_csv_stage/conditions.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.devices(
+CREATE TABLE synthea30g.devices(
 	"START" date, 
 	"STOP" date, 
 	"PATIENT" varchar(36), 
@@ -81,14 +81,14 @@ CREATE TABLE synthea10k.devices(
 	"DESCRIPTION" varchar(128),
 	"UDI" varchar(128)
 	);
-COPY INTO synthea10k.devices
+COPY INTO synthea30g.devices
   FROM @my_csv_stage/devices.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.encounters(
-	"Id" varchar(36),
+CREATE TABLE synthea30g.encounters(
+	"ID" varchar(36),
 	"START" timestamp, 
 	"STOP" timestamp, 
 	"PATIENT" varchar(36), 
@@ -104,31 +104,34 @@ CREATE TABLE synthea10k.encounters(
 	"REASONCODE" varchar(20), 
 	"REASONDESCRIPTION" varchar(128)
 	);
-COPY INTO synthea10k.encounters
+COPY INTO synthea30g.encounters
   FROM @my_csv_stage/encounters.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.imaging_studies(
-	"Id" varchar(36),
+CREATE TABLE synthea30g.imaging_studies(
+	"ID" varchar(36),
 	"DATE" date,
 	"PATIENT" varchar(36),
 	"ENCOUNTER" varchar(36),
+	"SERIES_UID" VARCHAR(64),
 	"BODYSITE_CODE" varchar(20), 
 	"BODYSITE_DESCRIPTION"  varchar(128),
 	"MODALITY_CODE" varchar(20), 
 	"MODALITY_DESCRIPTION"  varchar(128),
+	"INSTANCE_UID" VARCHAR(64),
 	"SOP_CODE" varchar(32), 
-	"SOP_DESCRIPTION" varchar(128)
+	"SOP_DESCRIPTION" varchar(128),
+	"PROCEDURE_CODE" varchar(64)
 	);
-COPY INTO synthea10k.imaging_studies
+COPY INTO synthea30g.imaging_studies
   FROM @my_csv_stage/imaging_studies.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.immunizations(
+CREATE TABLE synthea30g.immunizations(
 	"DATE" date,
 	"PATIENT" varchar(36),
 	"ENCOUNTER" varchar(36),
@@ -136,14 +139,14 @@ CREATE TABLE synthea10k.immunizations(
 	"DESCRIPTION" varchar(128),
 	"BASE_COST" float
 	);
-COPY INTO synthea10k.immunizations
+COPY INTO synthea30g.immunizations
   FROM @my_csv_stage/immunizations.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
 
-CREATE TABLE synthea10k.medications(
+CREATE TABLE synthea30g.medications(
 	"START" date, 
 	"STOP" date, 
 	"PATIENT" varchar(36), 
@@ -158,13 +161,13 @@ CREATE TABLE synthea10k.medications(
 	"REASONCODE" varchar(20), 
 	"REASONDESCRIPTION" varchar(128)
 	);
-COPY INTO synthea10k.medications
+COPY INTO synthea30g.medications
   FROM @my_csv_stage/medications.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.observations(
+CREATE TABLE synthea30g.observations(
 	"DATE" date,
 	"PATIENT" varchar(36),
 	"ENCOUNTER" varchar(36),
@@ -174,17 +177,17 @@ CREATE TABLE synthea10k.observations(
 	"UNITS" varchar(16),
 	"TYPE" varchar(7)
 	);
-COPY INTO synthea10k.observations
+COPY INTO synthea30g.observations
   FROM @my_csv_stage/observations.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.organizations(
-	"Id" varchar(36),
-	"NAME" varchar(70),
-	"ADDRESS" varchar(50),
-	"CITY" varchar(20),
+CREATE TABLE synthea30g.organizations(
+	"ID" varchar(36),
+	"NAME" varchar(120),
+	"ADDRESS" varchar(100),
+	"CITY" varchar(50),
 	"STATE" varchar(2),
 	"ZIP" varchar(10),
 	"LAT" float,
@@ -193,14 +196,14 @@ CREATE TABLE synthea10k.organizations(
 	"REVENUE" int,
 	"UTILIZATION" int
 	);
-COPY INTO synthea10k.organizations
+COPY INTO synthea30g.organizations
   FROM @my_csv_stage/organizations.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.patients(
-	"Id" varchar(36),
+CREATE TABLE synthea30g.patients(
+	"ID" varchar(36),
 	"BIRTHDATE" date,
 	"DEATHDATE" date,
 	"SSN" varchar(11),
@@ -226,27 +229,27 @@ CREATE TABLE synthea10k.patients(
 	"HEALTHCARE_EXPENSES" float,
 	"HEALTHCARE_COVERAGE" float
 	);
-COPY INTO synthea10k.patients
+COPY INTO synthea30g.patients
   FROM @my_csv_stage/patients.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.payer_transitions(
+CREATE TABLE synthea30g.payer_transitions(
 	"PATIENT" varchar(36),
 	"START_YEAR" varchar(4),
 	"END_YEAR" varchar(4),
 	"PAYER" varchar(36),
 	"OWNERSHIP" varchar(16)
 	);
-COPY INTO synthea10k.payer_transitions
+COPY INTO synthea30g.payer_transitions
   FROM @my_csv_stage/payer_transitions.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.payers(
-	"Id" varchar(36),
+CREATE TABLE synthea30g.payers(
+	"ID" varchar(36),
 	"NAME" varchar(70),
 	"ADDRESS" varchar(50),
 	"CITY" varchar(20),
@@ -268,14 +271,15 @@ CREATE TABLE synthea10k.payers(
 	"QOLS_AVG" float,
 	"MEMBER_MONTHS" int
 	);
-COPY INTO synthea10k.payers
+COPY INTO synthea30g.payers
   FROM @my_csv_stage/payers.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.procedures(
-	"DATE" date, 
+CREATE TABLE synthea30g.procedures(
+	"START" date, 
+	"STOP" date, 
 	"PATIENT" varchar(36), 
 	"ENCOUNTER" varchar(36),
 	"CODE" varchar(20), 
@@ -284,14 +288,14 @@ CREATE TABLE synthea10k.procedures(
 	"REASONCODE" varchar(20), 
 	"REASONDESCRIPTION" varchar(128)
 	);
-COPY INTO synthea10k.procedures
+COPY INTO synthea30g.procedures
   FROM @my_csv_stage/procedures.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.providers(
-	"Id" varchar(36),
+CREATE TABLE synthea30g.provIDers(
+	"ID" varchar(36),
 	"ORGANIZATION" varchar(36), 
 	"NAME" varchar(70),
 	"GENDER" varchar(1),
@@ -304,13 +308,13 @@ CREATE TABLE synthea10k.providers(
 	"LON" float,
 	"UTILIZATION" int
 	);
-COPY INTO synthea10k.providers
-  FROM @my_csv_stage/providers.csv.gz
+COPY INTO synthea30g.provIDers
+  FROM @my_csv_stage/provIDers.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';
 
 
-CREATE TABLE synthea10k.supplies(
+CREATE TABLE synthea30g.supplies(
 	"DATE" date, 
 	"PATIENT" varchar(36), 
 	"ENCOUNTER" varchar(36),
@@ -318,7 +322,7 @@ CREATE TABLE synthea10k.supplies(
 	"DESCRIPTION" varchar(128),
 	"QUANTITY" int
 	);
-COPY INTO synthea10k.supplies
+COPY INTO synthea30g.supplies
   FROM @my_csv_stage/supplies.csv.gz
   file_format = (format_name = mycsvformat)
   on_error = 'skip_file';

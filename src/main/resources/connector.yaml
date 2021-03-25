@@ -7,8 +7,7 @@ sfSchema: synthea30g
 #sfWarehouse: ""
 
 # SnowFlake tables  -> table to import
-#sfDbtable: [patients,conditions,devices,encounters,observations]
-sfDbtable: [devices]
+sfDbtable: [patients,conditions,devices,encounters,observations,payers,immunizations,allergies,procedures,providers,organizations,payer_transitions,careplans,imaging_studies,medications]
 
 # tigergraph config
 driver: com.tigergraph.jdbc.Driver

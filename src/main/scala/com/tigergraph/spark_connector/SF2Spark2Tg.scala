@@ -24,8 +24,6 @@ object SF2Spark2Tg {
   val successNum: AtomicLong = new AtomicLong(0)
   var statusChange: Boolean = false
 
-  val sf2Spark2TgLog = java.util.logging.Logger.getLogger("SF2Spark2Tg")
-
   val loadSuccessLogger = Logger.getLogger("loadSuccess")
   val loadBeginLogger = Logger.getLogger("loadBegin")
   val progressLogger = Logger.getLogger("progress")

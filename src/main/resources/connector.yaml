@@ -7,13 +7,14 @@ sfSchema: synthea30g
 #sfWarehouse: ""
 
 # SnowFlake tables  -> table to import
-sfDbtable: [patients,conditions,devices,encounters,observations]
+sfDbtable: [patients,conditions,devices,encounters,observations,payers,immunizations,allergies,procedures,providers,organizations,payer_transitions,careplans,imaging_studies,medications]
 
 # tigergraph config
 driver: com.tigergraph.jdbc.Driver
 url: jdbc:tg:http://18.162.146.208:14240
 username: tigergraph
 password: ces123
+token: k670rl16oncs359la8tf2upb5jlmrfg0
 # graph name
 graph: synthea
 
@@ -25,7 +26,8 @@ sep: ','
 eol: \n
 batchsize: 5000
 debug: 0
-
+# Maximum number of partitions for Spark
+numPartitions: 150
 
 # Data structure mapping
 # key : SnowFlake table
@@ -37,7 +39,7 @@ mappingRules:
   patients:
     "dbtable": "job loadPatient2"
     "jobConfig":
-      "sfColumn": "\"Id\",BIRTHDATE,DEATHDATE,SSN,DRIVERS,PASSPORT,PREFIX,FIRST,LAST,SUFFIX,MAIDEN,MARITAL,RACE,ETHNICITY,GENDER,BIRTHPLACE,ADDRESS,CITY,STATE,COUNTY,ZIP,LAT,LON,HEALTHCARE_EXPENSES,HEALTHCARE_COVERAGE"
+      "sfColumn": "ID,BIRTHDATE,DEATHDATE,SSN,DRIVERS,PASSPORT,PREFIX,FIRST,LAST,SUFFIX,MAIDEN,MARITAL,RACE,ETHNICITY,GENDER,BIRTHPLACE,ADDRESS,CITY,STATE,COUNTY,ZIP,LAT,LON,HEALTHCARE_EXPENSES,HEALTHCARE_COVERAGE"
   conditions:
     "dbtable": "job loadCondition"
     "jobConfig":
@@ -49,7 +51,7 @@ mappingRules:
   encounters:
     "dbtable": "job loadEncounter"
     "jobConfig":
-      "sfColumn": "\"Id\",START,STOP,PATIENT,ORGANIZATION,PROVIDER,PAYER,ENCOUNTERCLASS,CODE,DESCRIPTION,BASE_ENCOUNTER_COST,TOTAL_CLAIM_COST,PAYER_COVERAGE,REASONCODE,REASONDESCRIPTION"
+      "sfColumn": "ID,START,STOP,PATIENT,ORGANIZATION,PROVIDER,PAYER,ENCOUNTERCLASS,CODE,DESCRIPTION,BASE_ENCOUNTER_COST,TOTAL_CLAIM_COST,PAYER_COVERAGE,REASONCODE,REASONDESCRIPTION"
   observations:
     "dbtable": "job loadObservation"
     "jobConfig":
@@ -57,7 +59,7 @@ mappingRules:
   payers:
     "dbtable": "job loadPayer"
     "jobConfig":
-      "sfColumn": "\"Id\",NAME,ADDRESS,CITY,STATE_HEADQUARTERED,ZIP,PHONE,AMOUNT_COVERED,AMOUNT_UNCOVERED,REVENUE,COVERED_ENCOUNTERS,UNCOVERED_ENCOUNTERS,COVERED_MEDICATIONS,UNCOVERED_MEDICATIONS,COVERED_PROCEDURES,UNCOVERED_PROCEDURES,COVERED_IMMUNIZATIONS,UNCOVERED_IMMUNIZATIONS,UNIQUE_CUSTOMERS,QOLS_AVG,MEMBER_MONTHS"
+      "sfColumn": "ID,NAME,ADDRESS,CITY,STATE_HEADQUARTERED,ZIP,PHONE,AMOUNT_COVERED,AMOUNT_UNCOVERED,REVENUE,COVERED_ENCOUNTERS,UNCOVERED_ENCOUNTERS,COVERED_MEDICATIONS,UNCOVERED_MEDICATIONS,COVERED_PROCEDURES,UNCOVERED_PROCEDURES,COVERED_IMMUNIZATIONS,UNCOVERED_IMMUNIZATIONS,UNIQUE_CUSTOMERS,QOLS_AVG,MEMBER_MONTHS"
   immunizations:
     "dbtable": "job loadImmunization"
     "jobConfig":
@@ -73,11 +75,11 @@ mappingRules:
   providers:
     "dbtable": "job loadProvider"
     "jobConfig":
-      "sfColumn": "\"Id\",ORGANIZATION,NAME,GENDER,SPECIALITY,ADDRESS,CITY,STATE,ZIP,LAT,LON,UTILIZATION"
+      "sfColumn": "ID,ORGANIZATION,NAME,GENDER,SPECIALITY,ADDRESS,CITY,STATE,ZIP,LAT,LON,UTILIZATION"
   organizations:
     "dbtable": "job loadOrganization"
     "jobConfig":
-      "sfColumn": "\"Id\",NAME,ADDRESS,CITY,STATE,ZIP,LAT,LON,PHONE,REVENUE,UTILIZATION"
+      "sfColumn": "ID,NAME,ADDRESS,CITY,STATE,ZIP,LAT,LON,PHONE,REVENUE,UTILIZATION"
   payer_transitions:
     "dbtable": "job loadTransition"
     "jobConfig":
@@ -85,11 +87,11 @@ mappingRules:
   careplans:
     "dbtable": "job loadCareplan"
     "jobConfig":
-      "sfColumn": "\"Id\",START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION,REASONCODE,REASONDESCRIPTION"
+      "sfColumn": "ID,START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION,REASONCODE,REASONDESCRIPTION"
   imaging_studies:
     "dbtable": "job loadImaging"
     "jobConfig":
-      "sfColumn": "\"Id\",DATE,PATIENT,ENCOUNTER,BODYSITE_CODE,BODYSITE_DESCRIPTION,MODALITY_CODE,MODALITY_DESCRIPTION,SOP_CODE,SOP_DESCRIPTION"
+      "sfColumn": "ID,DATE,PATIENT,ENCOUNTER,BODYSITE_CODE,BODYSITE_DESCRIPTION,MODALITY_CODE,MODALITY_DESCRIPTION,SOP_CODE,SOP_DESCRIPTION"
   medications:
     "dbtable": "job loadMedication"
     "jobConfig":

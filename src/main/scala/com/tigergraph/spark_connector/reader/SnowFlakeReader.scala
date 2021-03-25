@@ -64,16 +64,6 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
       .load()
   }
 
-  def getTableAccount(df: DataFrameReader, table: String): Long = {
-    val startTime = System.currentTimeMillis()
-
-    println("count " + table + ": " + df.option("query", "SELECT count(*) AS count FROM " + table)
-      .load().limit(1).collect()(0).get(0))
-
-    println((System.currentTimeMillis() - startTime) / 1000)
-    0
-  }
-
   /** Set a configuration variable. */
   private def set(key: String, value: String): SnowFlakeReader = {
     if (key == null) {

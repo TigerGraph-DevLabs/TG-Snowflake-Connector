@@ -70,7 +70,15 @@ object SF2Spark2Tg {
     dfMiddle
   }
 
-  def writeDF2Tiger(spark: SparkSession, df: DataFrame, table: String, jobName: String, columnStr: String)(implicit xc: ExecutionContext) = Future {
+  def writeDF2Tiger(spark: SparkSession, df: DataFrame, table: String, support: Support)(implicit xc: ExecutionContext) = Future {
+
+    // get jobName and columnStr
+    val jobNameAndColumn = support.getTableInfo(table)
+
+    val jobName = jobNameAndColumn._1
+    val columnStr = jobNameAndColumn._2
+
+    val loadingInfo = support.getLoadingJobInfo(table)
 
     val startTime = System.currentTimeMillis()
 
@@ -80,7 +88,7 @@ object SF2Spark2Tg {
 
     val tgWriter: TigerGraphWriter = new TigerGraphWriter(CONFIG_PATH)
 
-    tgWriter.write(dfFormatted, jobName, columnStr)
+    tgWriter.write(dfFormatted, jobName, columnStr, loadingInfo)
 
     successNum.getAndIncrement()
     statusChange = true
@@ -124,9 +132,7 @@ object SF2Spark2Tg {
     for (table <- tables) {
       val df: DataFrame = sfReader.readTable(dfReader, table)
 
-      // get jobName and columnStr
-      val jobNameAndColumn = snowFlakeSupport.getTableInfo(table)
-      val task = writeDF2Tiger(spark, df, table, jobNameAndColumn._1, jobNameAndColumn._2)
+      val task = writeDF2Tiger(spark, df, table, snowFlakeSupport)
       tasks += task
     }
 

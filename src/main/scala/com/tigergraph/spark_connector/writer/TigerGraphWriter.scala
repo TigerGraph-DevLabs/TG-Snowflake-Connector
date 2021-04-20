@@ -53,17 +53,15 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
     tgConf.put(TOKEN, config.getOrDefault(TOKEN, "").toString)
 
     tgConf.put(GRAPH, config.get(GRAPH).toString)
-    tgConf.put(FILE_NAME, config.getOrDefault(FILE_NAME, "").toString)
-    tgConf.put(SEP, config.getOrDefault(SEP, "").toString)
-    tgConf.put(EOL, config.getOrDefault(EOL, "\n").toString)
-    tgConf.put(EOL, "\n")
     tgConf.put(BATCHSIZE, config.getOrDefault(BATCHSIZE, "").toString)
+    tgConf.put(SEP, config.get(SEP).asInstanceOf[String])
+    tgConf.put(EOL, config.get(EOL).asInstanceOf[String])
     tgConf.put(DEBUG, config.getOrDefault(DEBUG, "").toString)
     tgConf.put(NUM_PARTITIONS, config.getOrDefault(NUM_PARTITIONS, "150").toString)
   }
 
 
-  def write(df: DataFrame, dbtable: String, schema: String): Unit = {
+  def write(df: DataFrame, dbtable: String, schema: String, loadingInfo: util.Map[String, String]): Unit = {
     try {
       checkTgConf()
     } catch {
@@ -80,7 +78,7 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
         Map(
           "dbtable" -> dbtable, // loading job name
           "schema" -> schema // column definitions
-        )).save()
+        )).options(loadingInfo).save()
 
   }
 

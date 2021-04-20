@@ -32,4 +32,18 @@ class SnowFlakeSupport(val supportName: String, val path: String) extends Suppor
     (jobName, sfColumnStr)
   }
 
+  def getLoadingJobInfo(table: String): util.HashMap[String, String] = {
+    val sf2TigerKV = config.get("mappingRules")
+      .asInstanceOf[util.HashMap[String, Object]].get(table).asInstanceOf[util.HashMap[String, Object]]
+
+    val tigerMap = sf2TigerKV.get("jobConfig").asInstanceOf[util.HashMap[String, Object]]
+    val filename = tigerMap.get("filename").asInstanceOf[String]
+
+    val map:util.HashMap[String, String] = new util.HashMap[String,String]()
+
+    map.put("filename", filename)
+
+    return map
+  }
+
 }

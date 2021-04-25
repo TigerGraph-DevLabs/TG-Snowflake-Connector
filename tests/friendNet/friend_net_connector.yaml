@@ -1,0 +1,43 @@
+# snowflake config
+sfURL: lla10179.us-east-1.snowflakecomputing.com
+sfUser: liusx
+sfPassword: WxW7b6xJtWJpUGt
+sfDatabase: test_connect
+sfSchema: friend
+
+# SnowFlake tables  -> table to import
+sfDbtable: [persons,friends,coworkers]
+
+# tigergraph config
+driver: com.tigergraph.jdbc.Driver
+url: jdbc:tg:http://192.168.100.21:14240
+username: tigergraph
+password: ces123
+token: k670rl16oncs359la8tf2upb5jlmrfg0
+# graph name
+graph: friendNet_connect
+
+
+batchsize: 5000
+sep: ','
+eol: "\n"
+debug: 0
+numPartitions: 150
+
+mappingRules:
+  persons:
+    "dbtable": "job loadMember"
+    "jobConfig":
+      "sfColumn": "ID"
+      # filename defined in the loading job
+      "filename": f
+  friends:
+    "dbtable": "job loadFriend"
+    "jobConfig":
+      "sfColumn": "PERSON1,PERSON2"
+      "filename": f
+  coworkers:
+    "dbtable": "job loadCoworker"
+    "jobConfig":
+      "sfColumn": "PERSON1,PERSON2"
+      "filename": f

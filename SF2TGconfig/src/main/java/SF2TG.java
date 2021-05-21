@@ -61,6 +61,21 @@ public class SF2TG {
                     case "graph":
                         config.setGraph(splitArg[1]);
                         break;
+                    case "batchSize":
+                        config.setBatchSize(Integer.parseInt(splitArg[1]));
+                        break;
+                    case "sep":
+                        config.setSep(splitArg[1]);
+                        break;
+                    case "eol":
+                        config.setEol(splitArg[1]);
+                        break;
+                    case "debug":
+                        config.setDebug(Integer.parseInt(splitArg[1]));
+                        break;
+                    case "numPartitions":
+                        config.setNumPartitions(Integer.parseInt(splitArg[1]));
+                        break;
                     default:
                         jobs.add(splitArg[0]);
                         break;
@@ -170,6 +185,9 @@ public class SF2TG {
     public static void showHelp() {
         System.out.println("Usage: ./SF2TG [-h] [sfuser=<SFUsername> sfpassword=<SFPassword> sfurl=<SFURL> " +
                 "sfdb=<SFDatabase> sfschema=<SFSchema> tguser=<TGUsername> tgpassword=<TGPassword> " +
-                "tgip=<TGMachineIP> tgtoken=<TGToken> graph=<TGGraphName> <SFTablename1:TGLoadingJob1 SFTablename2:TGLoadingJob2 ...>]");
+                "tgip=<TGMachineIP> tgtoken=<TGToken> graph=<TGGraphName>] [eol=<end_of_line_symbol] " +
+                "[sep=<column_delimiter>] [numPartitions=<loading_partitions>] [batchSize=<loading_batchSize>] " +
+                "[debug=<spark_debug_value>]" +
+                " [<SFTablename1:TGLoadingJob1 SFTablename2:TGLoadingJob2 ...>]");
     }
 }

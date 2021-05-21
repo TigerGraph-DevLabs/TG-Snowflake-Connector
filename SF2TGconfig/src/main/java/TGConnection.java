@@ -71,18 +71,24 @@ public class TGConnection{
         HashMap<String,Set<String>> jobs = new HashMap<>();
         Gson gson = new Gson();
 
-        Request request = Request.Get("http://" + config.getTgIP() + ":14240/api/loading-jobs/SimSwapPoC/meta");
-        request.setHeader("cookie", cookie);
+        try {
+            Request request = Request.Get("http://" + config.getTgIP() + ":14240/api/loading-jobs/SimSwapPoC/meta");
+            request.setHeader("cookie", cookie);
 
-        // convert response string -> json object -> json array
-        JsonElement jelem = gson.fromJson(request.execute().returnContent().toString(), JsonElement.class);
-        JsonArray jsonArray = jelem.getAsJsonObject().getAsJsonArray("results");
+            // convert response string -> json object -> json array
+            JsonElement jelem = gson.fromJson(request.execute().returnContent().toString(), JsonElement.class);
+            JsonArray jsonArray = jelem.getAsJsonObject().getAsJsonArray("results");
 
-        for (JsonElement elem : jsonArray) {
-            // store jobs -> [filename1,filename2,...filenameN]
-            jobs.put(elem.getAsJsonObject().get("JobName").getAsString(),elem.getAsJsonObject().getAsJsonObject("FileNames").keySet());
+            for (JsonElement elem : jsonArray) {
+                // store jobs -> [filename1,filename2,...filenameN]
+                jobs.put(elem.getAsJsonObject().get("JobName").getAsString(), elem.getAsJsonObject().getAsJsonObject("FileNames").keySet());
+            }
+            return jobs;
+        } catch (HttpResponseException e) {
+            System.err.println("Error while getting response from the server. Please check your instance.");
+            System.err.println("Status Code : " + e.getStatusCode());
+            return null;
         }
-        return jobs;
     }
 
     public static String getCookie(connectConfigs config) throws IOException {

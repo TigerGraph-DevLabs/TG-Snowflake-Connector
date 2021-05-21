@@ -134,10 +134,11 @@ public class SF2TG {
             }
 
             tgMap = TGConnection.getTGInfo(config);
-            if (tgMap.size() > 0 ) {
-                System.out.println("TG loading jobs: " + tgMap + "\n");
+            if (tgMap == null || tgMap.size() == 0) {
+                System.err.println("Unable to retrieve TigerGraph loading jobs. Please check your TigerGraph Instance.");
+                System.exit(0);
             } else {
-                System.err.println("Unable to find TigerGraph loading jobs. Please check your TigerGraph Instance.");
+                System.out.println("TG loading jobs: " + tgMap + "\n");
             }
 
 

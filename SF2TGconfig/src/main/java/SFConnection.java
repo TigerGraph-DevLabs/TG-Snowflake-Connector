@@ -8,22 +8,20 @@ import java.sql.Statement;
 
 import net.snowflake.client.core.QueryStatus;
 import net.snowflake.client.jdbc.SnowflakeResultSet;
-import net.snowflake.client.jdbc.SnowflakeSQLException;
 import net.snowflake.client.jdbc.SnowflakeStatement;
 
 public class SFConnection {
 
     public static ArrayList<String> getTables(connectConfigs config) throws SQLException, InterruptedException {
-        ArrayList<String> res = new ArrayList();
+        ArrayList<String> res = new ArrayList<>();
 
-        String sql_command = "";
+        String sql_command;
         ResultSet resultSet;
 
         System.out.println("Getting tables");
         Statement statement = SF2TG.connection.createStatement();
         sql_command = "select table_name from information_schema.tables where table_schema ilike '" + config.getSfSchema() + "' order by table_name";
 
-        resultSet = statement.unwrap(SnowflakeStatement.class).executeAsyncQuery(sql_command);
         resultSet = statement.unwrap(SnowflakeStatement.class).executeAsyncQuery(sql_command);
 
         // Assume that the query isn't done yet.
@@ -57,7 +55,7 @@ public class SFConnection {
         HashMap<String, List<String>> mapRes = new HashMap<>();
 
         for (String cur : tableSet) {
-            String sql_command = "";
+            String sql_command;
             ResultSet resultSet;
 
             System.out.println("Getting columns for table: " + cur);
@@ -85,7 +83,7 @@ public class SFConnection {
                     System.out.println("ERROR: No rows returned.");
                 } else {
                     if (!mapRes.containsKey(cur)) {
-                        mapRes.put(cur, new LinkedList<String>());
+                        mapRes.put(cur, new LinkedList<>());
                     }
                     mapRes.get(cur).add(resultSet.getString(1));
                     while (resultSet.next()) {

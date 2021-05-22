@@ -7,6 +7,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ByteArrayEntity;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class TGConnection{
@@ -21,48 +22,74 @@ public class TGConnection{
     public static boolean testToken (connectConfigs config) {
         Gson gson = new Gson();
         String res;
+        JsonElement jelem;
 
         Request request = Request.Get("http://" + config.getTgIP() + ":9000/echo");
         request.setHeader("Authorization", "Bearer " + config.getToken());
-        JsonElement jelem = null;
+
         try {
             jelem = gson.fromJson(request.execute().returnContent().toString(), JsonElement.class);
             res = jelem.getAsJsonObject().get("error").getAsString();
-        } catch (HttpResponseException e) {
-            return false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             return false;
         }
+        return res.equalsIgnoreCase("false");
+    }
 
-        if (res.equalsIgnoreCase("false")) {
-            return true;
-        } else {
+    public static boolean checkUser (connectConfigs config) {
+        String encoding = Base64.getEncoder().encodeToString((config.getUsername()+ ":"+ config.getPassword()).getBytes(StandardCharsets.UTF_8));
+
+        Request request = Request.Get("http://" + config.getTgIP() + ":14240/gsqlserver/gsql/simpleauth");
+        request.setHeader("Authorization", "Basic " + encoding);
+
+        try {
+            int responseCode = request.execute().returnResponse().getStatusLine().getStatusCode();
+            return responseCode == 200;
+        } catch (Exception e) {
             return false;
         }
     }
 
-    public static boolean testLogin (connectConfigs config) throws UnsupportedEncodingException {
+    public static boolean graphAccess (connectConfigs config) {
+        Gson gson = new Gson();
+        JsonElement jelem;
+        String encoding = Base64.getEncoder().encodeToString((config.getUsername()+ ":"+ config.getPassword()).getBytes(StandardCharsets.UTF_8));
+
+        Request request = Request.Get("http://" + config.getTgIP() + ":14240/gsqlserver/gsql/simpleauth");
+        request.setHeader("Authorization", "Basic " + encoding);
+
+        try {
+            int responseCode = request.execute().returnResponse().getStatusLine().getStatusCode();
+            if (responseCode == 200) {
+                jelem = gson.fromJson(request.execute().returnContent().toString(), JsonElement.class);
+                JsonObject graphs = jelem.getAsJsonObject().get("roles").getAsJsonObject();
+                return graphs.keySet().contains(config.getGraph());
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean testLogin (connectConfigs config) {
         Gson gson = new Gson();
         String res;
-        String encoding = Base64.getEncoder().encodeToString((config.getUsername()+ ":"+ config.getPassword()).getBytes("UTF-8"));
+        JsonElement jelem;
+
+        String encoding = Base64.getEncoder().encodeToString((config.getUsername()+ ":"+ config.getPassword()).getBytes(StandardCharsets.UTF_8));
 
         Request request = Request.Get("http://" + config.getTgIP() + ":14240/gsqlserver/gsql/schema?graph=" + config.getGraph());
         request.setHeader("Authorization", "Basic " + encoding);
-        JsonElement jelem = null;
+
         try {
             jelem = gson.fromJson(request.execute().returnContent().toString(), JsonElement.class);
             res = jelem.getAsJsonObject().get("error").getAsString();
-        } catch (HttpResponseException e) {
-            return false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             return false;
         }
 
-        if (res.equalsIgnoreCase("false")) {
-            return true;
-        } else {
-            return false;
-        }
+        return res.equalsIgnoreCase("false");
     }
 
 
@@ -72,7 +99,7 @@ public class TGConnection{
         Gson gson = new Gson();
 
         try {
-            Request request = Request.Get("http://" + config.getTgIP() + ":14240/api/loading-jobs/SimSwapPoC/meta");
+            Request request = Request.Get("http://" + config.getTgIP() + ":14240/api/loading-jobs/" + config.getGraph() +  "/meta");
             request.setHeader("cookie", cookie);
 
             // convert response string -> json object -> json array
@@ -96,7 +123,7 @@ public class TGConnection{
 
         // REPLACE USERNAME AND PASSWORD WITH USER INPUTS
         String tgUserCred = "{\"username\":\"tigergraph\",\"password\":\"tigergraph\"}";
-        HttpEntity entity = new ByteArrayEntity(tgUserCred.getBytes("UTF-8"));
+        HttpEntity entity = new ByteArrayEntity(tgUserCred.getBytes(StandardCharsets.UTF_8));
 
         Request request = Request.Post("http://" + config.getTgIP() + ":14240/api/auth/login");
         //HttpResponse httpResponse = request.execute().returnResponse();

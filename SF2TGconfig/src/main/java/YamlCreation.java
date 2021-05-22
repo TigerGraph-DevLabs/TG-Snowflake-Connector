@@ -1,6 +1,5 @@
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.*;
@@ -13,7 +12,7 @@ public class YamlCreation {
         HashMap<String, Object> jobConfig = new HashMap<>();
         HashMap<String, String> tgConfigMap = new HashMap<>();
 
-        PrintWriter writer = new PrintWriter(new File("./connector.yaml"));
+        PrintWriter writer = new PrintWriter("./connector.yaml");
 
         SkipEmptyAndNullRepresenter skipEmptyAndNullRepresenter = new SkipEmptyAndNullRepresenter();
         skipEmptyAndNullRepresenter.addClassTag(connectConfigs.class, Tag.MAP);
@@ -60,7 +59,7 @@ public class YamlCreation {
         }
 
         // write sf configs to file
-        sfConfigMap.put("sfURL", config.getSfURL());
+        sfConfigMap.put("sfURL", config.getSfURL() + ".snowflakecomputing.com");
         sfConfigMap.put("sfUser", config.getSfUser());
         sfConfigMap.put("sfPassword", config.getSfPassword());
         sfConfigMap.put("sfDatabase", config.getSfDatabase());
@@ -93,7 +92,7 @@ public class YamlCreation {
 
         for (String tableName : tableMap.keySet()) {
             for (String filename: tgMap.get(jobMap.get(tableName))) {
-                writer.println("  " + tableName + ":");
+                writer.println(" - " + tableName + ":");
                 writer.println("    \"dbtable\": " + "\"" + "job " + jobMap.get(tableName) + "\"");
                 writer.println("    \"jobConfig\":");
                 writer.print("      \"sfColumn\": \"" + tableMap.get(tableName).get(0));

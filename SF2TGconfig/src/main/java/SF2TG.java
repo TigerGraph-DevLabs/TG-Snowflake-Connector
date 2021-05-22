@@ -1,6 +1,3 @@
-import net.snowflake.client.jdbc.internal.apache.arrow.flatbuf.Null;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,16 +15,16 @@ public class SF2TG {
     public static void main (String[] args) throws SQLException, InterruptedException, IOException {
         connectConfigs config = new connectConfigs();
         ArrayList<String> jobs = new ArrayList<>();
-        HashMap<String, String> jobMap = new HashMap();
+        HashMap<String, String> jobMap = new HashMap<>();
 
         if (args.length == 0 || (args.length == 1 && !args[0].equals("-h"))) {
             showHelp();
             System.exit(0);
-        } else if (args.length == 1 && args[0].equals("-h")) {
+        } else if (args[0].equals("-h")) {
             showHelp();
         } else {
-            for (int i = 0; i < args.length; i++) {
-                String[] splitArg = args[i].split("=", 2);
+            for (String arg : args) {
+                String[] splitArg = arg.split("=", 2);
                 switch (splitArg[0]) {
                     case "sfuser":
                         config.setSfUser(splitArg[1]);
@@ -142,9 +139,22 @@ public class SF2TG {
                 }
             }
 
+            // check TigerGraph user credentials
+            if (!TGConnection.checkUser(config)) {
+                System.err.println("TigerGraph user login invalid.");
+                System.exit(0);
+            }
+
+            // check graph access
+            if (!TGConnection.graphAccess(config)) {
+                System.err.println("This TigerGraph user either does not have access to this graph " +
+                        "or this graph does not exist.");
+                System.exit(0);
+            }
+
             // check tg credentials validity, if false, exit with error.
             if (!TGConnection.testLogin(config)) {
-                System.err.println("Invalid TigerGraph credentials provided.");
+                System.err.println("Cannot access graph. Please check your TigerGraph instance.");
                 System.exit(0);
             }
 
@@ -173,13 +183,9 @@ public class SF2TG {
     }
 
     public static boolean checkEssentials(connectConfigs config) {
-        if (config.getSfURL() == null || config.getSfUser() == null || config.getSfPassword() == null ||
-                config.getSfDatabase() == null || config.getSfSchema() == null || config.getTgIP() == null ||
-                config.getUsername() == null | config.getPassword() == null || config.getGraph() == null) {
-            return false;
-        } else {
-            return true;
-        }
+        return config.getSfURL() != null && config.getSfUser() != null && config.getSfPassword() != null &&
+                config.getSfDatabase() != null && config.getSfSchema() != null && config.getTgIP() != null &&
+                !(config.getUsername() == null | config.getPassword() == null) && config.getGraph() != null;
     }
 
     public static void showHelp() {

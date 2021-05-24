@@ -11,11 +11,12 @@ public class SF2TG {
     public static HashMap<String, List<String>> tableMap;
     // loading job names -> filenames
     public static HashMap<String, Set<String>> tgMap;
+    // snowflake -> tigergraph loading jobs
+    public static HashMap<String, String> jobMap = new HashMap<>();
 
     public static void main (String[] args) throws SQLException, InterruptedException, IOException {
         connectConfigs config = new connectConfigs();
         ArrayList<String> jobs = new ArrayList<>();
-        HashMap<String, String> jobMap = new HashMap<>();
 
         if (args.length == 0 || (args.length == 1 && !args[0].equals("-h"))) {
             showHelp();
@@ -82,7 +83,7 @@ public class SF2TG {
             try {
                 for (String s : jobs) {
                     String[] sepJobs = s.split(":",2);
-                    jobMap.put(sepJobs[0],sepJobs[1]);
+                    jobMap.put(sepJobs[0].toUpperCase(),sepJobs[1].toUpperCase());
                 }
             } catch (NullPointerException e) {
                 showHelp();
@@ -90,11 +91,11 @@ public class SF2TG {
             }
 
 
-        // check if essential config information is missing
-        if (!checkEssentials(config)) {
-            System.err.println("Missing essential information. Check inputs");
-            System.exit(0);
-        }
+            // check if essential config information is missing
+            if (!checkEssentials(config)) {
+                System.err.println("Missing essential information. Check inputs");
+                System.exit(0);
+            }
 
             // connect to SF server
             System.out.println("Connecting to Snowflake");
@@ -119,7 +120,7 @@ public class SF2TG {
             }
 
             for (String s : jobMap.keySet()) {
-                if (!tables.contains(s)) {
+                if (!tables.contains(s.toUpperCase())) {
                     System.err.println("Table Name : " + s + " does not exist in Snowflake");
                     System.exit(0);
                 }
@@ -168,7 +169,7 @@ public class SF2TG {
 
 
             for (String s : jobMap.values()) {
-                if (!tgMap.containsKey(s)) {
+                if (!tgMap.containsKey(s.toUpperCase())) {
                     System.err.println("Loading job: " + s + " does not exist in your TigerGraph instance");
                     System.exit(0);
                 }

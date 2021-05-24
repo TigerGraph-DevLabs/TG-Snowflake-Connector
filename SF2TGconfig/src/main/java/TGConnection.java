@@ -16,7 +16,7 @@ public class TGConnection{
     public static HashMap<String, Set<String>> getTGInfo(connectConfigs config) throws IOException {
         cookie = getCookie(config);
 
-        return getloadingJobs(cookie, config);
+        return getLoadingJobs(cookie, config);
     }
 
     public static boolean testToken (connectConfigs config) {
@@ -93,7 +93,7 @@ public class TGConnection{
     }
 
 
-    public static HashMap<String, Set<String>> getloadingJobs(String cookie, connectConfigs config) throws IOException {
+    public static HashMap<String, Set<String>> getLoadingJobs(String cookie, connectConfigs config) throws IOException {
         // job name -> [filenames]
         HashMap<String,Set<String>> jobs = new HashMap<>();
         Gson gson = new Gson();
@@ -108,7 +108,7 @@ public class TGConnection{
 
             for (JsonElement elem : jsonArray) {
                 // store jobs -> [filename1,filename2,...filenameN]
-                jobs.put(elem.getAsJsonObject().get("JobName").getAsString(), elem.getAsJsonObject().getAsJsonObject("FileNames").keySet());
+                jobs.put(elem.getAsJsonObject().get("JobName").getAsString().toUpperCase(), elem.getAsJsonObject().getAsJsonObject("FileNames").keySet());
             }
             return jobs;
         } catch (HttpResponseException e) {

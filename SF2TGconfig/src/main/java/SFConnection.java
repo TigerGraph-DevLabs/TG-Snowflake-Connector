@@ -20,7 +20,7 @@ public class SFConnection {
 
         System.out.println("Getting tables");
         Statement statement = SF2TG.connection.createStatement();
-        sql_command = "select table_name from information_schema.tables where table_schema ilike '" + config.getSfSchema() + "' order by table_name";
+        sql_command = "select table_name from information_schema.tables where table_schema ilike '" + config.getSfSchema().toUpperCase() + "' order by table_name";
 
         resultSet = statement.unwrap(SnowflakeStatement.class).executeAsyncQuery(sql_command);
 
@@ -42,9 +42,9 @@ public class SFConnection {
             if (!result_exists) {
                 System.out.println("ERROR: No rows returned.");
             } else {
-                res.add(resultSet.getString(1));
+                res.add(resultSet.getString(1).toUpperCase());
                 while (resultSet.next()) {
-                    res.add(resultSet.getString(1));
+                    res.add(resultSet.getString(1).toUpperCase());
                 }
             }
         }
@@ -60,7 +60,7 @@ public class SFConnection {
 
             System.out.println("Getting columns for table: " + cur);
             Statement statement = SF2TG.connection.createStatement();
-            sql_command = "select column_name from information_schema.columns where table_schema ilike '" + config.getSfSchema() + "' and table_name ilike '" + cur + "' order by ordinal_position;";
+            sql_command = "select column_name from information_schema.columns where table_schema ilike '" + config.getSfSchema().toUpperCase() + "' and table_name ilike '" + cur + "' order by ordinal_position;";
 
             resultSet = statement.unwrap(SnowflakeStatement.class).executeAsyncQuery(sql_command);
 
@@ -85,9 +85,9 @@ public class SFConnection {
                     if (!mapRes.containsKey(cur)) {
                         mapRes.put(cur, new LinkedList<>());
                     }
-                    mapRes.get(cur).add(resultSet.getString(1));
+                    mapRes.get(cur).add(resultSet.getString(1).toUpperCase());
                     while (resultSet.next()) {
-                        mapRes.get(cur).add(resultSet.getString(1));
+                        mapRes.get(cur).add(resultSet.getString(1).toUpperCase());
                     }
                 }
             }
@@ -108,8 +108,8 @@ public class SFConnection {
             properties.put("user", sfconfig.getSfUser());     // replace "" with your username
             properties.put("password", sfconfig.getSfPassword()); // replace "" with your password
             properties.put("account", sfconfig.getSfURL());  // replace "" with your account name
-            properties.put("db", sfconfig.getSfDatabase());       // replace "" with target database name
-            properties.put("schema", sfconfig.getSfSchema());   // replace "" with target schema name
+            properties.put("db", sfconfig.getSfDatabase().toUpperCase());       // replace "" with target database name
+            properties.put("schema", sfconfig.getSfSchema().toUpperCase());   // replace "" with target schema name
             //properties.put("tracing", "on");
 
             // create a new connection

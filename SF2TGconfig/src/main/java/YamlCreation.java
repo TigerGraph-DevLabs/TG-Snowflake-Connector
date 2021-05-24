@@ -90,17 +90,20 @@ public class YamlCreation {
         // write mappings to file
         writer.println("mappingRules:");
 
+
         for (String tableName : tableMap.keySet()) {
-            for (String filename: tgMap.get(jobMap.get(tableName))) {
-                writer.println(" - " + tableName + ":");
-                writer.println("    \"dbtable\": " + "\"" + "job " + jobMap.get(tableName) + "\"");
-                writer.println("    \"jobConfig\":");
-                writer.print("      \"sfColumn\": \"" + tableMap.get(tableName).get(0));
-                for (int i = 1; i < tableMap.get(tableName).size(); i++) {
-                    writer.print("," + tableMap.get(tableName).get(i));
+            if (tgMap.get(jobMap.get(tableName)) != null) {
+                for (String filename : tgMap.get(jobMap.get(tableName))) {
+                    writer.println(" - " + tableName + ":");
+                    writer.println("    \"dbtable\": " + "\"" + "job " + jobMap.get(tableName) + "\"");
+                    writer.println("    \"jobConfig\":");
+                    writer.print("      \"sfColumn\": \"" + tableMap.get(tableName).get(0));
+                    for (int i = 1; i < tableMap.get(tableName).size(); i++) {
+                        writer.print("," + tableMap.get(tableName).get(i));
+                    }
+                    writer.println("\"");
+                    writer.println("      \"filename\": " + filename);
                 }
-                writer.println("\"");
-                writer.println("      \"filename\": " + filename);
             }
         }
         writer.flush();

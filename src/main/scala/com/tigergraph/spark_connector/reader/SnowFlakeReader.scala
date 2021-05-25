@@ -65,7 +65,7 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   }
 
   /** Set a configuration variable. */
-  private def set(key: String, value: String): SnowFlakeReader = {
+  def set(key: String, value: String): SnowFlakeReader = {
     if (key == null) {
       throw new NullPointerException("null key")
     }

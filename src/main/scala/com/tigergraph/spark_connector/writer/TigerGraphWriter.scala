@@ -16,7 +16,6 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
 
   var config: util.HashMap[String, Object] = _
 
-  private val SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
   private val DRIVER = "driver"
   private val URL = "url"
   private val USERNAME = "username"

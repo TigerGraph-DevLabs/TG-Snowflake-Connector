@@ -10,7 +10,7 @@
 
 If you don't have Spark installed, follow these steps to install it
 
-[Spark homepage](spark.apache.org)
+[Spark homepage](https://spark.apache.org)
 
 ## 2. Preparation 
 

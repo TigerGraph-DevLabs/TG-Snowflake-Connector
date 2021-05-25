@@ -83,7 +83,7 @@ public class SF2TG {
             try {
                 for (String s : jobs) {
                     String[] sepJobs = s.split(":",2);
-                    jobMap.put(sepJobs[0].toUpperCase(),sepJobs[1].toUpperCase());
+                    jobMap.put(sepJobs[0].toUpperCase(),sepJobs[1]);
                 }
             } catch (NullPointerException e) {
                 showHelp();
@@ -167,9 +167,9 @@ public class SF2TG {
                 System.out.println("TG loading jobs: " + tgMap + "\n");
             }
 
-
+            // check loading job existence input : tigergraph instance
             for (String s : jobMap.values()) {
-                if (!tgMap.containsKey(s.toUpperCase())) {
+                if (!tgMap.containsKey(s)) {
                     System.err.println("Loading job: " + s + " does not exist in your TigerGraph instance");
                     System.exit(0);
                 }

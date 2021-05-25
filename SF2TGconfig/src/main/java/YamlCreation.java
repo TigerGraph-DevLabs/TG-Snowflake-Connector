@@ -9,7 +9,6 @@ public class YamlCreation {
     public static void writeToYaml(ArrayList<String> tables, HashMap<String,String> jobMap, HashMap<String,List<String>> tableMap, HashMap<String, Set<String>> tgMap, connectConfigs config) throws FileNotFoundException {
         ArrayList<String> mappingTables = new ArrayList<>();
         HashMap<String, String> sfConfigMap = new HashMap<>();
-        HashMap<String, ArrayList<String>> dumpTables = new HashMap<>();
         HashMap<String, Object> jobConfig = new HashMap<>();
         HashMap<String, String> tgConfigMap = new HashMap<>();
 
@@ -74,8 +73,7 @@ public class YamlCreation {
         }
 
         // write table names to file
-        dumpTables.put("sfDbtable",mappingTables);
-        listYaml.dump(dumpTables, writer);
+        writer.println("sfDbtable: " + mappingTables);
 
         // write tg configs to file
         tgConfigMap.put("driver", config.getDriver());
@@ -89,16 +87,16 @@ public class YamlCreation {
         prettyYaml.dump(tgConfigMap, writer);
 
         // write job configs to file
-        jobConfig.put("batchSize", config.getBatchSize());
+        jobConfig.put("batchsize", config.getBatchSize());
         jobConfig.put("sep", config.getSep());
-        jobConfig.put("eol", config.getEol());
         jobConfig.put("debug", config.getDebug());
         jobConfig.put("numPartitions", config.getNumPartitions());
         prettyYaml.dump(jobConfig, writer);
+        writer.println("eol: \"" + config.getEol() +"\"");
 
         // write mappings to file
         writer.println("mappingRules:");
-        
+
         for (String tableName : tableMap.keySet()) {
             if (tgMap.get(jobMap.get(tableName)) != null) {
                 for (String filename : tgMap.get(jobMap.get(tableName))) {

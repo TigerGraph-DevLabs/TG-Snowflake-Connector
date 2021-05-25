@@ -108,7 +108,7 @@ public class TGConnection{
 
             for (JsonElement elem : jsonArray) {
                 // store jobs -> [filename1,filename2,...filenameN]
-                jobs.put(elem.getAsJsonObject().get("JobName").getAsString().toUpperCase(), elem.getAsJsonObject().getAsJsonObject("FileNames").keySet());
+                jobs.put(elem.getAsJsonObject().get("JobName").getAsString(), elem.getAsJsonObject().getAsJsonObject("FileNames").keySet());
             }
             return jobs;
         } catch (HttpResponseException e) {

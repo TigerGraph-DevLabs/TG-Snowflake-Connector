@@ -7,6 +7,7 @@ import java.util.*;
 
 public class YamlCreation {
     public static void writeToYaml(ArrayList<String> tables, HashMap<String,String> jobMap, HashMap<String,List<String>> tableMap, HashMap<String, Set<String>> tgMap, connectConfigs config) throws FileNotFoundException {
+        ArrayList<String> mappingTables = new ArrayList<>();
         HashMap<String, String> sfConfigMap = new HashMap<>();
         HashMap<String, ArrayList<String>> dumpTables = new HashMap<>();
         HashMap<String, Object> jobConfig = new HashMap<>();
@@ -66,8 +67,14 @@ public class YamlCreation {
         sfConfigMap.put("sfSchema",config.getSfSchema());
         prettyYaml.dump(sfConfigMap, writer);
 
+        for (String s : tables) {
+            if (jobMap.containsKey(s)) {
+                mappingTables.add(s);
+            }
+        }
+
         // write table names to file
-        dumpTables.put("sfDbTable",tables);
+        dumpTables.put("sfDbtable",mappingTables);
         listYaml.dump(dumpTables, writer);
 
         // write tg configs to file
@@ -75,8 +82,10 @@ public class YamlCreation {
         tgConfigMap.put("url", config.getUrl());
         tgConfigMap.put("username", config.getUsername());
         tgConfigMap.put("password", config.getPassword());
-        tgConfigMap.put("token", config.getToken());
         tgConfigMap.put("graph", config.getGraph());
+        if (config.getToken() != null) {
+            tgConfigMap.put("token", config.getToken());
+        }
         prettyYaml.dump(tgConfigMap, writer);
 
         // write job configs to file
@@ -89,12 +98,11 @@ public class YamlCreation {
 
         // write mappings to file
         writer.println("mappingRules:");
-
-
+        
         for (String tableName : tableMap.keySet()) {
             if (tgMap.get(jobMap.get(tableName)) != null) {
                 for (String filename : tgMap.get(jobMap.get(tableName))) {
-                    writer.println(" - " + tableName + ":");
+                    writer.println("  " + tableName + ":");
                     writer.println("    \"dbtable\": " + "\"" + "job " + jobMap.get(tableName) + "\"");
                     writer.println("    \"jobConfig\":");
                     writer.print("      \"sfColumn\": \"" + tableMap.get(tableName).get(0));

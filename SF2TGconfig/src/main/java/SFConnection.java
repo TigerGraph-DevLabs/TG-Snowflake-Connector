@@ -110,7 +110,7 @@ public class SFConnection {
             properties.put("account", sfconfig.getSfURL());  // replace "" with your account name
             properties.put("db", sfconfig.getSfDatabase().toUpperCase());       // replace "" with target database name
             properties.put("schema", sfconfig.getSfSchema().toUpperCase());   // replace "" with target schema name
-            //properties.put("tracing", "on");
+            properties.put("tracing", "OFF");
 
             // create a new connection
             String connectStr = System.getenv("SF_JDBC_CONNECT_STRING");
@@ -121,8 +121,7 @@ public class SFConnection {
             }
             return DriverManager.getConnection(connectStr, properties);
         } catch (SQLException e) {
-            System.err.println("Incorrect username or password");
+            return null;
         }
-        return null;
     }
 }

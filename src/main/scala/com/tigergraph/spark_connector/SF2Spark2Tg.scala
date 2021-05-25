@@ -3,6 +3,7 @@ package com.tigergraph.spark_connector
 
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{Future => _, _}
+import java.util.regex.Pattern
 
 import com.tigergraph.spark_connector.reader.{Reader, SnowFlakeReader}
 import com.tigergraph.spark_connector.support.{SnowFlakeSupport, Support}
@@ -10,6 +11,7 @@ import com.tigergraph.spark_connector.utils.ProgressUtil
 import com.tigergraph.spark_connector.writer.TigerGraphWriter
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.functions.{col, date_format}
+import org.apache.spark.sql.types.DoubleType
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
 
 import scala.collection.mutable.ArrayBuffer
@@ -32,6 +34,10 @@ object SF2Spark2Tg {
   Logger.getLogger("loadBegin").setLevel(Level.INFO)
   Logger.getLogger("progress").setLevel(Level.INFO)
 
+  private val TIME_OUT = "timeout"
+  private val TIME_UNIT = "timeunit"
+
+
   def dfFilteredAndFormatted(oldDF: DataFrame, filteredStr: String): DataFrame = {
 
     var snowFlakeColumns = ArrayBuffer[String]()
@@ -49,19 +55,37 @@ object SF2Spark2Tg {
       schema.dataType.typeName == "date" || schema.dataType.typeName == "timestamp"
     }).map(_.name).toArray
 
+    // find decimal(*,0) format  convert to long
+    val pattern = "(decimal)\\((\\d)*,0\\)"
+
     // select decimal type
-    val bigDecimalArray = dfMiddle.schema.filter(schema => {
-      schema.dataType.typeName.contains("decimal")
+    val intTypeArray = dfMiddle.schema.filter(schema => {
+      // int bigint 转换成 long
+      val name = schema.dataType.typeName
+      // schema.dataType.typeName.contains("decimal(38,0)")
+      Pattern.matches(pattern, name)
     }).map(_.name).toArray
+
+    val decimalTypeArray = dfMiddle.schema.filter(schema => {
+      // int bigint 转换成 long
+      schema.dataType.typeName.contains("decimal")
+    }).map(_.name).filter(name => {
+      !intTypeArray.contains(name)
+    }).toArray
 
     for (colName <- dateArray) {
       // convert date to string
       dfMiddle = dfMiddle.withColumn(colName, date_format(col(colName), "yyyy/MM/dd HH:mm:ss"))
     }
 
-    for (colName <- bigDecimalArray) {
+    for (colName <- intTypeArray) {
       // convert decimal to int
-      dfMiddle = dfMiddle.withColumn(colName, col(colName).cast("int"))
+      dfMiddle = dfMiddle.withColumn(colName, col(colName).cast("long"))
+    }
+
+    for (colName <- decimalTypeArray) {
+      // convert decimal to int
+      dfMiddle = dfMiddle.withColumn(colName, col(colName).cast(DoubleType))
     }
 
     // fill null date
@@ -88,7 +112,15 @@ object SF2Spark2Tg {
 
     val tgWriter: TigerGraphWriter = new TigerGraphWriter(CONFIG_PATH)
 
-    tgWriter.write(dfFormatted, jobName, columnStr, loadingInfo)
+    try {
+      tgWriter.write(dfFormatted, jobName, columnStr, loadingInfo)
+    } catch {
+      case e: Exception =>
+        // check tg conf illegal
+        // not token or username and password
+        e.printStackTrace()
+        System.exit(-1)
+    }
 
     successNum.getAndIncrement()
     statusChange = true
@@ -127,6 +159,12 @@ object SF2Spark2Tg {
     val tables: ArrayBuffer[String] = sfReader.getTables
     val dfReader: DataFrameReader = sfReader.reader(spark)
 
+    val tgWriter = new TigerGraphWriter(path)
+
+    val config = tgWriter.config
+    val timeOut: Integer = config.getOrDefault(TIME_OUT, new Integer(24)).asInstanceOf[Integer]
+    val timeUnit = config.getOrDefault(TIME_UNIT, "HOURS").asInstanceOf[String]
+
     val tasks: ArrayBuffer[Future[Unit]] = new ArrayBuffer[Future[Unit]]()
 
     for (table <- tables) {
@@ -141,11 +179,17 @@ object SF2Spark2Tg {
     // add logging task
     addLogDaemon(singlePool)
 
-    // await task complete
-    Await.result(Future.sequence(tasks), Duration(60, MINUTES))
+    try {
+      // await task complete
+      Await.result(Future.sequence(tasks), Duration(timeOut.longValue(), TimeUnit.valueOf(timeUnit)))
+    } catch {
+      case e: Exception =>
+        progressLogger.error("Wait timeout, try batch import")
+        e.printStackTrace()
+    }
 
-    pool.shutdown()
-    singlePool.shutdown()
+    pool.shutdownNow()
+    singlePool.shutdownNow()
     spark.close()
     progressLogger.info("The total time consuming:" + (System.currentTimeMillis() - startTime) / 1000 + "s")
 

@@ -18,7 +18,7 @@ SF2TG.sh
                  tgip=<TGMachineIP> tgtoken=<TGToken> graph=<TGGraphName> 
                  [eol=<end_of_line_symbol] [sep=<column_delimiter>] [numPartitions=<loading_partitions>] 
                  [batchSize=<loading_batchSize>] [debug=<spark_debug_value>]
-                 <SFTablename1:TGLoadingJob1 SFTablename2:TGLoadingJob2 ...>]
+                 <SFTablename1:TGLoadingJob1:TGFilename SFTablename2:TGLoadingJob2:TGFilename ...>]
 ```
 
 ## Examples

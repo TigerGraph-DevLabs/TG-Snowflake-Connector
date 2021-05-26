@@ -169,7 +169,7 @@ public class SF2TG {
                 String[] jobAndFile = jobFile.split(":",2);
                 if (!tgMap.get(jobAndFile[0]).contains(jobAndFile[1])) {
                     System.err.println("The loading job: " + jobAndFile[0] + " does not contain this" +
-                            "definition: " + jobAndFile[1] + ".\nCase sensitivity matters.");
+                            " definition: " + jobAndFile[1] + ".\nCase sensitivity matters.");
                     System.exit(0);
                 }
             }

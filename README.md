@@ -1,14 +1,14 @@
-# spark-connector
+# TigerGraph-Snowflake-Connector
 
 
 
 ## 1. Introduction
 
-The project is to write the data from snowFlake into the TigerGraph. The goal is to import data by modifying configuration file.
+This project enables users to load data from Snowflake database into TigerGraph database easily. For more details, refer to the documentation page:  https://github.com/TigerGraph-DevLabs/TG-Snowflake-Connector/wiki/Snowflake-Connector-Documentation
 
-If you're a developer, the code is in src.
+If you are a developer and would like to look at the source code, the code is located in 'src' folder.
 
-If you just want to use the connector, you can find it in assets or tests.
+If you just want to use the connector, you can find the artifacts in 'assets' folder or review 'tests' folder.
 
 You can use QuickStart to get started with the connector.
 

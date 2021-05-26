@@ -4,7 +4,7 @@
 
 ## 1. Introduction
 
-This project enables users to load data from Snowflake database into TigerGraph database easily. For more details, refer to the documentation page:  https://github.com/TigerGraph-DevLabs/TG-Snowflake-Connector/wiki/Snowflake-Connector-Documentation
+This project enables users to load data from Snowflake database into TigerGraph database easily. For more details, refer to the [**documentation page**](https://github.com/TigerGraph-DevLabs/TG-Snowflake-Connector/wiki/TigerGraph-Snowflake-Connector-Documentation)
 
 If you are a developer and would like to look at the source code, the code is located in 'src' folder.
 

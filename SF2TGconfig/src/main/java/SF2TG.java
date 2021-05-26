@@ -82,8 +82,8 @@ public class SF2TG {
 
             try {
                 for (String s : jobs) {
-                    String[] sepJobs = s.split(":",2);
-                    jobMap.put(sepJobs[0].toUpperCase(),sepJobs[1]);
+                    String[] sepJobs = s.split(":", 2);
+                    jobMap.put(sepJobs[0].toUpperCase(), sepJobs[1]);
                 }
             } catch (NullPointerException e) {
                 showHelp();
@@ -163,9 +163,19 @@ public class SF2TG {
             if (tgMap == null || tgMap.size() == 0) {
                 System.err.println("Unable to retrieve TigerGraph loading jobs. Please check your TigerGraph Instance.");
                 System.exit(0);
-            } else {
-                System.out.println("TG loading jobs: " + tgMap + "\n");
             }
+
+            for (String jobFile : jobMap.values()) {
+                String[] jobAndFile = jobFile.split(":",2);
+                if (!tgMap.get(jobAndFile[0]).contains(jobAndFile[1])) {
+                    System.err.println("The loading job: " + jobAndFile[0] + " does not contain this" +
+                            "definition: " + jobAndFile[1] + ".\nCase sensitivity matters.");
+                    System.exit(0);
+                }
+            }
+
+            System.out.println("TG loading jobs: " + tgMap + "\n");
+
 
             // check loading job existence input : tigergraph instance
             for (String s : jobMap.values()) {
@@ -180,7 +190,7 @@ public class SF2TG {
             // Dump the collected information to yaml file //
             /////////////////////////////////////////////////
             System.out.println("Printing to YAML file: " + System.getProperty("user.dir") + "/connector.yaml");
-            YamlCreation.writeToYaml(tables,jobMap, tableMap, tgMap, config);
+            YamlCreation.writeToYaml(tables, jobMap, tableMap, tgMap, config);
         }
     }
 

@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import org.apache.commons.lang.StringUtils
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.sql.DataFrame
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
 
@@ -16,11 +16,11 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
 
   var config: util.HashMap[String, Object] = _
 
-  private val SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
   private val DRIVER = "driver"
   private val URL = "url"
   private val USERNAME = "username"
   private val PASSWORD = "password"
+  private val TOKEN = "token"
   private val GRAPH = "graph"
   private val FILE_NAME = "filename"
   private val SEP = "sep"
@@ -32,7 +32,7 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
   def this(configPath: String) = {
     this(true, configPath)
     init()
-    initSfConf()
+    initTgConf()
   }
 
   def init() = {
@@ -40,27 +40,36 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
     config = yaml.load(new FileInputStream(configPath)).asInstanceOf[util.HashMap[String, Object]]
   }
 
-  private def initSfConf(): Unit = {
+  private def initTgConf(): Unit = {
     tgConf.put(DRIVER, config.get(DRIVER).toString)
     tgConf.put(URL, config.get(URL).toString)
-    tgConf.put(USERNAME, config.get(USERNAME).toString)
-    tgConf.put(PASSWORD, config.get(PASSWORD).toString)
+
+    // two ways authentication
+    // 1. username and password
+    // 2. token
+    tgConf.put(USERNAME, config.getOrDefault(USERNAME, "").toString)
+    tgConf.put(PASSWORD, config.getOrDefault(PASSWORD, "").toString)
+    tgConf.put(TOKEN, config.getOrDefault(TOKEN, "").toString)
+
     tgConf.put(GRAPH, config.get(GRAPH).toString)
-    tgConf.put(FILE_NAME, config.getOrDefault(FILE_NAME, "").toString)
-    tgConf.put(SEP, config.getOrDefault(SEP, "").toString)
-    tgConf.put(EOL, config.getOrDefault(EOL, "\n").toString)
-    tgConf.put(EOL, "\n")
     tgConf.put(BATCHSIZE, config.getOrDefault(BATCHSIZE, "").toString)
+    tgConf.put(SEP, config.get(SEP).asInstanceOf[String])
+    tgConf.put(EOL, config.get(EOL).asInstanceOf[String])
     tgConf.put(DEBUG, config.getOrDefault(DEBUG, "").toString)
-    tgConf.put(NUM_PARTITIONS, config.getOrDefault(NUM_PARTITIONS, "1").toString)
+    tgConf.put(NUM_PARTITIONS, config.getOrDefault(NUM_PARTITIONS, "150").toString)
   }
 
-  def insertData(data: Iterator[(Int, Row)]): Unit = {
 
-  }
-
-  def write(df: DataFrame, dbtable: String, schema: String): Unit = {
-    checkTgConf
+  def write(df: DataFrame, dbtable: String, schema: String, loadingInfo: util.Map[String, String]): Unit = {
+    try {
+      checkTgConf()
+    } catch {
+      case e: NullPointerException =>
+        // check tg conf illegal
+        // not token or username and password
+        e.printStackTrace()
+        System.exit(-1)
+    }
 
     df.write.mode("overwrite").format("jdbc")
       .options(tgConf)
@@ -68,7 +77,7 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
         Map(
           "dbtable" -> dbtable, // loading job name
           "schema" -> schema // column definitions
-        )).save()
+        )).options(loadingInfo).save()
 
   }
 
@@ -87,19 +96,30 @@ class TigerGraphWriter(loadDefaults: Boolean, configPath: String) extends Clonea
 
   def checkTgConf(): Unit = {
     if (StringUtils.isEmpty(tgConf.get(DRIVER))) {
-      throw new NullPointerException("null tiger graph driver")
+      throw new NullPointerException("there is no tiger graph driver [driver] in configuration file.")
     }
     if (StringUtils.isEmpty(tgConf.get(URL))) {
-      throw new NullPointerException("null tiger graph url")
+      throw new NullPointerException("there is no tiger graph url [url] in configuration file.")
     }
+    checkAuthentication()
+
+    if (StringUtils.isEmpty(tgConf.get(GRAPH))) {
+      throw new NullPointerException("there is no tiger graph graph [graph] in configuration file.")
+    }
+  }
+
+  def checkAuthentication(): Unit = {
+    //Verify the user name and password if there is no token
+    if (StringUtils.isNotEmpty(tgConf.get(TOKEN))) {
+      // there is a token, the check passes
+      return
+    }
+
     if (StringUtils.isEmpty(tgConf.get(USERNAME))) {
-      throw new NullPointerException("null tiger graph username")
+      throw new NullPointerException("there is no tiger graph username [username] in configuration file.")
     }
     if (StringUtils.isEmpty(tgConf.get(PASSWORD))) {
-      throw new NullPointerException("null tiger graph password")
-    }
-    if (StringUtils.isEmpty(tgConf.get(GRAPH))) {
-      throw new NullPointerException("null tiger graph graph")
+      throw new NullPointerException("there is no tiger graph password [password] in configuration file.")
     }
   }
 }

@@ -169,7 +169,8 @@ public class SF2TG {
 
             // check loading job existence input : tigergraph instance
             for (String s : jobMap.values()) {
-                if (!tgMap.containsKey(s)) {
+                String[] jobName = s.split(":",2);
+                if (!tgMap.containsKey(jobName[0])) {
                     System.err.println("Loading job: " + s + " does not exist in your TigerGraph instance");
                     System.exit(0);
                 }
@@ -195,6 +196,6 @@ public class SF2TG {
                 "tgip=<TGMachineIP> tgtoken=<TGToken> graph=<TGGraphName>] [eol=<end_of_line_symbol] " +
                 "[sep=<column_delimiter>] [numPartitions=<loading_partitions>] [batchSize=<loading_batchSize>] " +
                 "[debug=<spark_debug_value>]" +
-                " [<SFTablename1:TGLoadingJob1 SFTablename2:TGLoadingJob2 ...>]");
+                " [<SFTablename1:TGLoadingJob1:TGFilename SFTablename2:TGLoadingJob2:TGFilename ...>]");
     }
 }

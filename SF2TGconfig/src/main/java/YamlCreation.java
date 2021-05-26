@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.*;
 
 public class YamlCreation {
-    public static void writeToYaml(ArrayList<String> tables, HashMap<String,String> jobMap, HashMap<String,List<String>> tableMap, HashMap<String, Set<String>> tgMap, connectConfigs config) throws FileNotFoundException {
+    public static void writeToYaml(ArrayList<String> tables, HashMap<String, String> jobMap, HashMap<String,List<String>> tableMap, HashMap<String, Set<String>> tgMap, connectConfigs config) throws FileNotFoundException {
         ArrayList<String> mappingTables = new ArrayList<>();
         HashMap<String, String> sfConfigMap = new HashMap<>();
         HashMap<String, Object> jobConfig = new HashMap<>();
@@ -30,33 +30,6 @@ public class YamlCreation {
         Yaml prettyYaml = new Yaml(pretty);
         Yaml listYaml = new Yaml(skipEmptyAndNullRepresenter,list);
 
-        for (Map.Entry<String,String> t : jobMap.entrySet()) {                     // for each table -> tg job mapped
-            for (Map.Entry<String, List<String>> s : tableMap.entrySet()) {         // for each table
-                if (s.getKey().equals(t.getKey())) {
-                    for (Map.Entry<String, Set<String>> tg : tgMap.entrySet()) {    // for each tg job -> {files}
-                        if (tg.getKey().equals(t.getValue())) {                     // if tg job name matches user mapping
-                            Set<String> files = tg.getValue();
-                            for (String file : files) {
-                                Mappings tempMap = new Mappings();
-                                tempMap.setfileName(file);
-                                tempMap.settgLoadJob(tg.getKey());
-                                if (s.getKey().equals(t.getKey())) {
-                                    tempMap.setSFTable(s.getKey());
-                                    tempMap.setsfColumns(s.getValue());
-                                }
-                                if (tempMap.getfileName() != null &&
-                                        tempMap.gettgLoadJob() != null &&
-                                        tempMap.getSFTable() != null &&
-                                        tempMap.getsfColumns() != null) {
-                                    config.setmappingRules(tempMap);
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-        }
 
         // write sf configs to file
         sfConfigMap.put("sfURL", config.getSfURL() + ".snowflakecomputing.com");
@@ -65,6 +38,7 @@ public class YamlCreation {
         sfConfigMap.put("sfDatabase", config.getSfDatabase());
         sfConfigMap.put("sfSchema",config.getSfSchema());
         prettyYaml.dump(sfConfigMap, writer);
+        writer.println();
 
         for (String s : tables) {
             if (jobMap.containsKey(s)) {
@@ -74,6 +48,7 @@ public class YamlCreation {
 
         // write table names to file
         writer.println("sfDbtable: " + mappingTables);
+        writer.println();
 
         // write tg configs to file
         tgConfigMap.put("driver", config.getDriver());
@@ -85,6 +60,7 @@ public class YamlCreation {
             tgConfigMap.put("token", config.getToken());
         }
         prettyYaml.dump(tgConfigMap, writer);
+        writer.println();
 
         // write job configs to file
         jobConfig.put("batchsize", config.getBatchSize());
@@ -93,22 +69,24 @@ public class YamlCreation {
         jobConfig.put("numPartitions", config.getNumPartitions());
         prettyYaml.dump(jobConfig, writer);
         writer.println("eol: \"" + config.getEol() +"\"");
+        writer.println();
 
         // write mappings to file
         writer.println("mappingRules:");
 
         for (String tableName : tableMap.keySet()) {
-            if (tgMap.get(jobMap.get(tableName)) != null) {
-                for (String filename : tgMap.get(jobMap.get(tableName))) {
-                    writer.println("  " + tableName + ":");
-                    writer.println("    \"dbtable\": " + "\"" + "job " + jobMap.get(tableName) + "\"");
-                    writer.println("    \"jobConfig\":");
-                    writer.print("      \"sfColumn\": \"" + tableMap.get(tableName).get(0));
-                    for (int i = 1; i < tableMap.get(tableName).size(); i++) {
-                        writer.print("," + tableMap.get(tableName).get(i));
-                    }
-                    writer.println("\"");
-                    writer.println("      \"filename\": " + filename);
+            if (jobMap.get(tableName) != null) {
+                String[] jobAndFile = jobMap.get(tableName).split(":", 2);
+                if (tgMap.get(jobAndFile[0]) != null) {
+                        writer.println("  " + tableName + ":");
+                        writer.println("    \"dbtable\": " + "\"" + "job " + jobAndFile[0] + "\"");
+                        writer.println("    \"jobConfig\":");
+                        writer.print("      \"sfColumn\": \"" + tableMap.get(tableName).get(0));
+                        for (int i = 1; i < tableMap.get(tableName).size(); i++) {
+                            writer.print("," + tableMap.get(tableName).get(i));
+                        }
+                        writer.println("\"");
+                        writer.println("      \"filename\": " + jobAndFile[1]);
                 }
             }
         }

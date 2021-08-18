@@ -32,7 +32,7 @@ Usage: ./SF2TG [-h] [sfuser=<SFUsername> sfpassword=<SFPassword> sfurl=<SFURL> s
 ### Normal usage
 Here is an example of calling the script to get actual output:
 ```
-./SF2TG.sh sfuser=kcai sfpassword=Wasdqer2 sfurl=fka25931.us-east-1 sfdb=TEST_CONNECT sfschema=Friend tguser=tigergraph tgpassword=tigergraph tgip=3.84.42.120 graph=SimSwapPoC batchSize=999 debug=1 numPartitions=999 eol="\t" sep='|' debug=9999 tgtoken=do5t6bmng5kaumbaufrbsghr0dr9cigs coworkers:load_job_IMSI_csv_1619483721639:MyDataSource PERSONS:fakeLoader:f1 FRIENDS:fakeLoader:f2
+./SF2TG.sh sfuser=kcai sfpassword=tigergraph sfurl=fka25931.us-east-1 sfdb=TEST_CONNECT sfschema=Friend tguser=tigergraph tgpassword=tigergraph tgip=3.84.42.120 graph=SimSwapPoC batchSize=999 debug=1 numPartitions=999 eol="\t" sep='|' debug=9999 tgtoken=do5t6bmng5kaumbaufrbsghr0dr9cigs coworkers:load_job_IMSI_csv_1619483721639:MyDataSource PERSONS:fakeLoader:f1 FRIENDS:fakeLoader:f2
 Connecting to Snowflake
 Snowflake Connected
 

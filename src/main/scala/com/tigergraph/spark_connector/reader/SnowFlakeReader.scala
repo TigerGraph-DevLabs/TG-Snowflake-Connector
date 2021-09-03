@@ -24,6 +24,7 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   private val SF_SCHEMA = "sfSchema"
   private val SF_WAREHOUSE = "sfWarehouse"
   private val SF_DBTABLE = "sfDbtable"
+  private val SF_APPLICATION = "application"
 
   def this(path: String) = {
     // default parameters
@@ -39,6 +40,7 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
     sfConf.put(SF_DATABASE, config.get(SF_DATABASE).toString)
     sfConf.put(SF_SCHEMA, config.get(SF_SCHEMA).toString)
     sfConf.put(SF_WAREHOUSE, config.getOrDefault(SF_WAREHOUSE, "").toString)
+    sfConf.put(SF_APPLICATION, config.getOrDefault(SF_APPLICATION, "tigergraph").toString)
     val tableList: util.List[String] = config.get(SF_DBTABLE).asInstanceOf[util.List[String]]
     if (tableList != null) {
       for (elem <- tableList) {

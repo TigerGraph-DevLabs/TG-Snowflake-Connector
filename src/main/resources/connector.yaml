@@ -4,6 +4,7 @@ sfUser: liusx
 sfPassword: WxW7b6xJtWJpUGt
 sfDatabase: tg_spark
 sfSchema: synthea10k
+application: tigergraph
 
 # SnowFlake tables  -> table to import
 sfDbtable: [patients,conditions,devices,encounters,observations,payers,immunizations,allergies,procedures,providers,organizations,payer_transitions,careplans,imaging_studies,medications]

@@ -1,10 +1,11 @@
 # snowflake config
 sfURL: lla10179.us-east-1.snowflakecomputing.com
 sfUser: liusx
-sfPassword: WxW7b6xJtWJpUGt
+sfPassword:
 sfDatabase: tg_spark
 sfSchema: synthea10k
 application: tigergraph
+pem_private_key:
 
 # SnowFlake tables  -> table to import
 sfDbtable: [patients,conditions,devices,encounters,observations,payers,immunizations,allergies,procedures,providers,organizations,payer_transitions,careplans,imaging_studies,medications]

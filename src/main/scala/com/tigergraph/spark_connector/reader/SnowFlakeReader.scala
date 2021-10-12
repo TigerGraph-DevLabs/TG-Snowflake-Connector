@@ -25,6 +25,7 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   private val SF_WAREHOUSE = "sfWarehouse"
   private val SF_DBTABLE = "sfDbtable"
   private val SF_APPLICATION = "application"
+  private val PARAM_PEM_PRIVATE_KEY = "pem_private_key"
 
   def this(path: String) = {
     // default parameters
@@ -36,11 +37,13 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   private def initSfConf(): Unit = {
     sfConf.put(SF_URL, config.get(SF_URL).toString)
     sfConf.put(SF_USER, config.get(SF_USER).toString)
-    sfConf.put(SF_PASSWORD, config.get(SF_PASSWORD).toString)
+    sfConf.put(SF_PASSWORD, config.getOrDefault(SF_PASSWORD, "").toString)
     sfConf.put(SF_DATABASE, config.get(SF_DATABASE).toString)
     sfConf.put(SF_SCHEMA, config.get(SF_SCHEMA).toString)
     sfConf.put(SF_WAREHOUSE, config.getOrDefault(SF_WAREHOUSE, "").toString)
     sfConf.put(SF_APPLICATION, config.getOrDefault(SF_APPLICATION, "tigergraph").toString)
+    sfConf.put(PARAM_PEM_PRIVATE_KEY, config.getOrDefault(PARAM_PEM_PRIVATE_KEY, "").toString)
+
     val tableList: util.List[String] = config.get(SF_DBTABLE).asInstanceOf[util.List[String]]
     if (tableList != null) {
       for (elem <- tableList) {

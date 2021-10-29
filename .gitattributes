@@ -1,1 +1,2 @@
 assets/TigerGraphConnector.jar filter=lfs diff=lfs merge=lfs -text
+assets/SF2TGconfig20211029.jar filter=lfs diff=lfs merge=lfs -text

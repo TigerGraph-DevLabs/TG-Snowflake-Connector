@@ -4,8 +4,6 @@ sfUser: liusx
 sfPassword:
 sfDatabase: tg_spark
 sfSchema: synthea10k
-application: tigergraph
-pem_private_key:
 
 # SnowFlake tables  -> table to import
 sfDbtable: [patients,conditions,devices,encounters,observations,payers,immunizations,allergies,procedures,providers,organizations,payer_transitions,careplans,imaging_studies,medications]
@@ -18,7 +16,8 @@ password: ces123
 token: k670rl16oncs359la8tf2upb5jlmrfg0
 # graph name
 graph: synthea
-
+application: tigergraph
+pem_private_key:
 
 batchsize: 5000
 # This symbol is used to represent a delimiter during transmission. No symbol can exist in the data

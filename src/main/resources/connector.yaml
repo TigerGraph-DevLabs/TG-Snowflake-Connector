@@ -1,13 +1,15 @@
 # snowflake config
 sfURL: lla10179.us-east-1.snowflakecomputing.com
-sfUser: liusx
+sfUser: wangzq
 sfPassword:
-sfDatabase: tg_spark
-sfSchema: synthea10k
+sfDatabase: SNOWFLAKE_SAMPLE_DATA
+sfSchema: TPCH_SF1
+warehouse:
+application:
+pem_private_key: D:\\02code\\08tiger\\sf2tg\\rsa_key.p8
 
 # SnowFlake tables  -> table to import
-sfDbtable: [patients,conditions,devices,encounters,observations,payers,immunizations,allergies,procedures,providers,organizations,payer_transitions,careplans,imaging_studies,medications]
-
+sfDbtable: [CUSTOMER,LINEITEM]
 # tigergraph config
 driver: com.tigergraph.jdbc.Driver
 url: jdbc:tg:http://192.168.100.21:14240
@@ -16,8 +18,6 @@ password: ces123
 token: k670rl16oncs359la8tf2upb5jlmrfg0
 # graph name
 graph: synthea
-application: tigergraph
-pem_private_key:
 
 batchsize: 5000
 # This symbol is used to represent a delimiter during transmission. No symbol can exist in the data

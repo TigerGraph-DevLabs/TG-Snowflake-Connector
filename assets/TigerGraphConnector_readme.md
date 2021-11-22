@@ -38,6 +38,10 @@ sfPassword: WxW7b6xJtW
 sfDatabase: tg_spark
 sfSchema: synthea30g
 ```
+```yaml
+pem_private_key: 
+```
+Support unencrypted private key to connect snowflake. [Reference](https://docs.snowflake.com/en/user-guide/key-pair-auth.html#supported-snowflake-clients)
 
 ### 2.2 SnowFlake table name to be imported
 

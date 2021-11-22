@@ -1,8 +1,17 @@
 package com.tigergraph.spark_connector.reader
 
+import java.io.{DataInputStream, File, FileInputStream, FileReader}
+import java.nio.file.Paths
+import java.security.Security
 import java.util.concurrent.ConcurrentHashMap
 import java.util
 
+import net.snowflake.client.jdbc.internal.org.bouncycastle.asn1.pkcs.PrivateKeyInfo
+import net.snowflake.client.jdbc.internal.org.bouncycastle.jce.provider.BouncyCastleProvider
+import net.snowflake.client.jdbc.internal.org.bouncycastle.openssl.PEMParser
+import net.snowflake.client.jdbc.internal.org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder
+import net.snowflake.client.jdbc.internal.org.bouncycastle.operator.InputDecryptorProvider
+import net.snowflake.client.jdbc.internal.org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo
 import org.apache.commons.lang.StringUtils
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
@@ -37,12 +46,23 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   private def initSfConf(): Unit = {
     sfConf.put(SF_URL, config.get(SF_URL).toString)
     sfConf.put(SF_USER, config.get(SF_USER).toString)
-    sfConf.put(SF_PASSWORD, config.getOrDefault(SF_PASSWORD, "").toString)
+
+    if (null != config.get(SF_PASSWORD)) {
+      sfConf.put(SF_PASSWORD, config.get(SF_PASSWORD).toString)
+    }
+
     sfConf.put(SF_DATABASE, config.get(SF_DATABASE).toString)
     sfConf.put(SF_SCHEMA, config.get(SF_SCHEMA).toString)
-    sfConf.put(SF_WAREHOUSE, config.getOrDefault(SF_WAREHOUSE, "").toString)
-    sfConf.put(SF_APPLICATION, config.getOrDefault(SF_APPLICATION, "tigergraph").toString)
-    sfConf.put(PARAM_PEM_PRIVATE_KEY, config.getOrDefault(PARAM_PEM_PRIVATE_KEY, "").toString)
+
+    if (null != config.get(SF_WAREHOUSE)) {
+     sfConf.put(SF_WAREHOUSE, config.get(SF_WAREHOUSE).toString)
+    }
+
+    if (null != config.get(SF_APPLICATION)) {
+      sfConf.put(SF_APPLICATION, config.get(SF_APPLICATION).toString)
+    }
+
+    sfConf.put(PARAM_PEM_PRIVATE_KEY, getPemPrivateKey())
 
     val tableList: util.List[String] = config.get(SF_DBTABLE).asInstanceOf[util.List[String]]
     if (tableList != null) {
@@ -52,8 +72,29 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
     }
   }
 
+  private def getPemPrivateKey(): String = {
+    if (null ==  config.get(PARAM_PEM_PRIVATE_KEY)) {
+      return ""
+    }
+
+    val pemPath: String = config.get(PARAM_PEM_PRIVATE_KEY).toString
+
+    val f = new File(pemPath)
+    val fis = new FileInputStream(f)
+    val dis = new DataInputStream(fis)
+    val keyBytes = new Array[Byte](f.length.asInstanceOf[Int])
+    dis.readFully(keyBytes)
+    dis.close()
+
+    var encrypted = new String(keyBytes, "utf-8")
+    encrypted = encrypted.replaceAll("-*BEGIN .* KEY-*", "")
+    encrypted = encrypted.replaceAll("-*END .* KEY-*", "")
+    encrypted.trim
+  }
+
   override def reader(spark: SparkSession): DataFrameReader = {
-    checkSfConf
+
+  checkSfConf
     val reader: DataFrameReader = spark.read
       .format(SNOWFLAKE_SOURCE_NAME)
       .options(sfConf)

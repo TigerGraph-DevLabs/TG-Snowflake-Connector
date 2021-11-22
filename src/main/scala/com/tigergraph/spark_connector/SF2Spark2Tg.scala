@@ -142,8 +142,9 @@ object SF2Spark2Tg {
 
     CONFIG_PATH = path
 
-    val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
+//    val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
 
+    val spark = SparkSession.builder().master("local").appName(this.getClass.getCanonicalName).getOrCreate()
     spark.sparkContext.setLogLevel("warn")
 
 
@@ -169,7 +170,6 @@ object SF2Spark2Tg {
 
     for (table <- tables) {
       val df: DataFrame = sfReader.readTable(dfReader, table)
-
       val task = writeDF2Tiger(spark, df, table, snowFlakeSupport)
       tasks += task
     }

@@ -1,17 +1,9 @@
 package com.tigergraph.spark_connector.reader
 
-import java.io.{DataInputStream, File, FileInputStream, FileReader}
-import java.nio.file.Paths
-import java.security.Security
+import java.io.{DataInputStream, File, FileInputStream}
 import java.util.concurrent.ConcurrentHashMap
 import java.util
 
-import net.snowflake.client.jdbc.internal.org.bouncycastle.asn1.pkcs.PrivateKeyInfo
-import net.snowflake.client.jdbc.internal.org.bouncycastle.jce.provider.BouncyCastleProvider
-import net.snowflake.client.jdbc.internal.org.bouncycastle.openssl.PEMParser
-import net.snowflake.client.jdbc.internal.org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder
-import net.snowflake.client.jdbc.internal.org.bouncycastle.operator.InputDecryptorProvider
-import net.snowflake.client.jdbc.internal.org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo
 import org.apache.commons.lang.StringUtils
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}

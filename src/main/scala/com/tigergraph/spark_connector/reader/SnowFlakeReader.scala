@@ -27,6 +27,7 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   private val SF_DBTABLE = "sfDbtable"
   private val SF_APPLICATION = "application"
   private val PARAM_PEM_PRIVATE_KEY = "pem_private_key"
+  private val PARAM_SF_ROLE= "sfrole"
 
   def this(path: String) = {
     // default parameters
@@ -52,6 +53,10 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
 
     if (null != config.get(SF_APPLICATION)) {
       sfConf.put(SF_APPLICATION, config.get(SF_APPLICATION).toString)
+    }
+
+    if (null != config.get(PARAM_SF_ROLE)) {
+      sfConf.put(PARAM_SF_ROLE, config.get(PARAM_SF_ROLE).toString)
     }
 
     if (! StringUtils.isEmpty(getPemPrivateKey())) {

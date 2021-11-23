@@ -5,6 +5,7 @@ sfUser: liusx
 sfDatabase: tg_spark
 sfSchema: synthea30g
 warehouse: COMPUTE_WH
+sfrole:
 #application:
 pem_private_key: /home/ubuntu/sfKey/rsa_key.p8
 # SnowFlake tables  -> table to import

@@ -1,23 +1,23 @@
 # snowflake config
 sfURL: lla10179.us-east-1.snowflakecomputing.com
-sfUser: wangzq
-sfPassword:
-sfDatabase: SNOWFLAKE_SAMPLE_DATA
-sfSchema: TPCH_SF1
-warehouse:
-application:
-pem_private_key: D:\\02code\\08tiger\\sf2tg\\rsa_key.p8
-
+sfUser: liusx
+#sfPassword: Qwer1234
+sfDatabase: tg_spark
+sfSchema: synthea30g
+warehouse: COMPUTE_WH
+#application:
+pem_private_key: /home/ubuntu/sfKey/rsa_key.p8
 # SnowFlake tables  -> table to import
-sfDbtable: [CUSTOMER,LINEITEM]
+sfDbtable: [conditions,providers]
+
 # tigergraph config
 driver: com.tigergraph.jdbc.Driver
-url: jdbc:tg:http://192.168.100.21:14240
+url: jdbc:tg:http://127.0.0.1:14240
 username: tigergraph
-password: ces123
-token: k670rl16oncs359la8tf2upb5jlmrfg0
+password: tigergraph
+# token: k670rl16oncs359la8tf2upb5jlmrfg0
 # graph name
-graph: synthea
+graph: Social_network
 
 batchsize: 5000
 # This symbol is used to represent a delimiter during transmission. No symbol can exist in the data
@@ -36,79 +36,14 @@ numPartitions: 150
 #         sfColumn : columns in SnowFlake table
 #         filename: filename defined in the loading job
 mappingRules:
-  patients:
-    "dbtable": "job loadPatient"
-    "jobConfig":
-      "sfColumn": "ID,BIRTHDATE,DEATHDATE,SSN,DRIVERS,PASSPORT,PREFIX,FIRST,LAST,SUFFIX,MAIDEN,MARITAL,RACE,ETHNICITY,GENDER,BIRTHPLACE,ADDRESS,CITY,STATE,COUNTY,ZIP,LAT,LON,HEALTHCARE_EXPENSES,HEALTHCARE_COVERAGE"
-      # filename defined in the loading job
-      "filename": file_name
   conditions:
-    "dbtable": "job loadCondition"
+    "dbtable": "job loadJob"
     "jobConfig":
-      "sfColumn": "START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION"
-      "filename": file_name
-  devices:
-    "dbtable": "job loadDevice"
-    "jobConfig":
-      "sfColumn": "START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION,UDI"
-      "filename": file_name
-  encounters:
-    "dbtable": "job loadEncounter"
-    "jobConfig":
-      "sfColumn": "ID,START,STOP,PATIENT,ORGANIZATION,PROVIDER,PAYER,ENCOUNTERCLASS,CODE,DESCRIPTION,BASE_ENCOUNTER_COST,TOTAL_CLAIM_COST,PAYER_COVERAGE,REASONCODE,REASONDESCRIPTION"
-      "filename": file_name
-  observations:
-    "dbtable": "job loadObservation"
-    "jobConfig":
-      "sfColumn": "DATE,PATIENT,ENCOUNTER,CODE,DESCRIPTION,VALUE,UNITS,TYPE"
-      "filename": file_name
-  payers:
-    "dbtable": "job loadPayer"
-    "jobConfig":
-      "sfColumn": "ID,NAME,ADDRESS,CITY,STATE_HEADQUARTERED,ZIP,PHONE,AMOUNT_COVERED,AMOUNT_UNCOVERED,REVENUE,COVERED_ENCOUNTERS,UNCOVERED_ENCOUNTERS,COVERED_MEDICATIONS,UNCOVERED_MEDICATIONS,COVERED_PROCEDURES,UNCOVERED_PROCEDURES,COVERED_IMMUNIZATIONS,UNCOVERED_IMMUNIZATIONS,UNIQUE_CUSTOMERS,QOLS_AVG,MEMBER_MONTHS"
-      "filename": file_name
-  immunizations:
-    "dbtable": "job loadImmunization"
-    "jobConfig":
-      "sfColumn": "DATE,PATIENT,ENCOUNTER,CODE,DESCRIPTION,BASE_COST"
-      "filename": file_name
-  allergies:
-    "dbtable": "job loadAllergy"
-    "jobConfig":
-      "sfColumn": "START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION"
-      "filename": file_name
-  procedures:
-    "dbtable": "job loadProcedure"
-    "jobConfig":
-      "sfColumn": "START,PATIENT,ENCOUNTER,CODE,DESCRIPTION,BASE_COST,REASONCODE,REASONDESCRIPTION"
-      "filename": file_name
+      "sfColumn": "PATIENT,ENCOUNTER,CODE,DESCRIPTION"
+      # filename defined in the loading job
+      "filename": user
   providers:
-    "dbtable": "job loadProvider"
+    "dbtable": "job loadJob"
     "jobConfig":
-      "sfColumn": "ID,ORGANIZATION,NAME,GENDER,SPECIALITY,ADDRESS,CITY,STATE,ZIP,LAT,LON,UTILIZATION"
-      "filename": file_name
-  organizations:
-    "dbtable": "job loadOrganization"
-    "jobConfig":
-      "sfColumn": "ID,NAME,ADDRESS,CITY,STATE,ZIP,LAT,LON,PHONE,REVENUE,UTILIZATION"
-      "filename": file_name
-  payer_transitions:
-    "dbtable": "job loadTransition"
-    "jobConfig":
-      "sfColumn": "PATIENT,START_YEAR,END_YEAR,PAYER,OWNERSHIP"
-      "filename": file_name
-  careplans:
-    "dbtable": "job loadCareplan"
-    "jobConfig":
-      "sfColumn": "ID,START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION,REASONCODE,REASONDESCRIPTION"
-      "filename": file_name
-  imaging_studies:
-    "dbtable": "job loadImaging"
-    "jobConfig":
-      "sfColumn": "ID,DATE,PATIENT,ENCOUNTER,BODYSITE_CODE,BODYSITE_DESCRIPTION,MODALITY_CODE,MODALITY_DESCRIPTION,SOP_CODE,SOP_DESCRIPTION"
-      "filename": file_name
-  medications:
-    "dbtable": "job loadMedication"
-    "jobConfig":
-      "sfColumn": "START,STOP,PATIENT,PAYER,ENCOUNTER,CODE,DESCRIPTION,BASE_COST,PAYER_COVERAGE,DISPENSES,TOTALCOST,REASONCODE,REASONDESCRIPTION"
-      "filename": file_name
+      "sfColumn": "ID,ORGANIZATION,NAME"
+      "filename": test

@@ -54,7 +54,10 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
       sfConf.put(SF_APPLICATION, config.get(SF_APPLICATION).toString)
     }
 
-    sfConf.put(PARAM_PEM_PRIVATE_KEY, getPemPrivateKey())
+    if (! StringUtils.isEmpty(getPemPrivateKey())) {
+      sfConf.put(PARAM_PEM_PRIVATE_KEY, getPemPrivateKey())
+    }
+
 
     val tableList: util.List[String] = config.get(SF_DBTABLE).asInstanceOf[util.List[String]]
     if (tableList != null) {
@@ -85,7 +88,6 @@ class SnowFlakeReader(val readerName: String, val path: String) extends Reader w
   }
 
   override def reader(spark: SparkSession): DataFrameReader = {
-
   checkSfConf
     val reader: DataFrameReader = spark.read
       .format(SNOWFLAKE_SOURCE_NAME)

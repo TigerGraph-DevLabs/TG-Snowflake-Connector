@@ -141,10 +141,12 @@ object SF2Spark2Tg {
     println(s"config path is ${path} ")
 
     CONFIG_PATH = path
+    // running env
+    val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
 
-//    val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
+    // debug env
+//    val spark = SparkSession.builder().master("local").appName(this.getClass.getCanonicalName).getOrCreate()
 
-    val spark = SparkSession.builder().master("local").appName(this.getClass.getCanonicalName).getOrCreate()
     spark.sparkContext.setLogLevel("warn")
 
 

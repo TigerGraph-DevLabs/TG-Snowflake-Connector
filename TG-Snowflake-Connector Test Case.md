@@ -248,4 +248,11 @@ GSQL > END
    }
    ```
 
+### Enter SnowFlake password manually Test
+Submit task to spark. Then enter the password according to the situation.
+```shell script
+Please enter the snowflake password, end by 'Enter'. If you don’t need to enter a password, just hit enter.
+Enter SnowFlake password : 
+```
+
    

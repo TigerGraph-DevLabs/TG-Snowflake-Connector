@@ -1,6 +1,7 @@
 package com.tigergraph.spark_connector
 
 
+import java.io.Console
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{Future => _, _}
 import java.util.regex.Pattern
@@ -10,6 +11,7 @@ import com.tigergraph.spark_connector.support.{SnowFlakeSupport, Support}
 import com.tigergraph.spark_connector.utils.ProgressUtil
 import com.tigergraph.spark_connector.writer.TigerGraphWriter
 import org.apache.log4j.{Level, Logger}
+import org.apache.spark.sql.catalyst.util.StringUtils
 import org.apache.spark.sql.functions.{col, date_format}
 import org.apache.spark.sql.types.DoubleType
 import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
@@ -17,6 +19,7 @@ import org.apache.spark.sql.{DataFrame, DataFrameReader, SparkSession}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.io.StdIn
 
 object SF2Spark2Tg {
 
@@ -141,6 +144,19 @@ object SF2Spark2Tg {
     println(s"config path is ${path} ")
 
     CONFIG_PATH = path
+
+    println("Please enter the snowflake password, end by 'Enter'. If you don’t need to enter a password, just hit enter.")
+    print("Enter SnowFlake password : ")
+
+    val console: Console = System.console
+    var sfPassword : String = ""
+    if (null == console) {
+      sfPassword = StdIn.readLine()
+    }
+    else {
+      sfPassword = new String(console.readPassword())
+    }
+
     // running env
     val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
 
@@ -149,7 +165,6 @@ object SF2Spark2Tg {
 
     spark.sparkContext.setLogLevel("warn")
 
-
     // Set number of threads via a configuration property
     val pool = Executors.newFixedThreadPool(30)
     val singlePool = Executors.newSingleThreadExecutor()
@@ -157,7 +172,7 @@ object SF2Spark2Tg {
     // create the implicit ExecutionContext based on our thread pool
     implicit val xc = ExecutionContext.fromExecutorService(pool)
 
-    val sfReader: Reader = new SnowFlakeReader(path)
+    val sfReader: Reader = new SnowFlakeReader(path, sfPassword)
     val snowFlakeSupport: Support = new SnowFlakeSupport(path)
     val tables: ArrayBuffer[String] = sfReader.getTables
     val dfReader: DataFrameReader = sfReader.reader(spark)

@@ -134,34 +134,22 @@ object SF2Spark2Tg {
   def main(args: Array[String]): Unit = {
 
     if (args == null || args.length == 0) {
-      println("no config path")
+      loadBeginLogger.info("no config path")
       return
     }
 
     val startTime = System.currentTimeMillis()
 
     val path = args(0)
-    println(s"config path is ${path} ")
+    loadBeginLogger.info(s"config path is ${path} ")
 
     CONFIG_PATH = path
-
-    println("Please enter the snowflake password, end by 'Enter'. If you don’t need to enter a password, just hit enter.")
-    print("Enter SnowFlake password : ")
-
-    val console: Console = System.console
-    var sfPassword : String = ""
-    if (null == console) {
-      sfPassword = StdIn.readLine()
-    }
-    else {
-      sfPassword = new String(console.readPassword())
-    }
 
     // running env
     val spark = SparkSession.builder().appName(this.getClass.getCanonicalName).getOrCreate()
 
     // debug env
-//    val spark = SparkSession.builder().master("local").appName(this.getClass.getCanonicalName).getOrCreate()
+    //    val spark = SparkSession.builder().master("local").appName(this.getClass.getCanonicalName).getOrCreate()
 
     spark.sparkContext.setLogLevel("warn")
 
@@ -172,9 +160,26 @@ object SF2Spark2Tg {
     // create the implicit ExecutionContext based on our thread pool
     implicit val xc = ExecutionContext.fromExecutorService(pool)
 
-    val sfReader: Reader = new SnowFlakeReader(path, sfPassword)
+    val sfReader: Reader = new SnowFlakeReader(path)
     val snowFlakeSupport: Support = new SnowFlakeSupport(path)
+
+    if (null == sfReader.getPassword() ||  sfReader.getPassword().isEmpty) {
+      println("Please enter the snowflake password, end by 'Enter'. If you don’t need to enter a password, just hit enter.")
+      print("Enter SnowFlake password : ")
+
+      val console: Console = System.console
+      var sfPassword : String = ""
+      if (null == console) {
+        sfPassword = StdIn.readLine()
+      }
+      else {
+        sfPassword = new String(console.readPassword())
+      }
+      sfReader.setPassword(sfPassword)
+    }
+
     val tables: ArrayBuffer[String] = sfReader.getTables
+    progressLogger.info(s"[ load sf tables : ${tables.mkString(",")} ]")
     val dfReader: DataFrameReader = sfReader.reader(spark)
 
     val tgWriter = new TigerGraphWriter(path)
@@ -186,6 +191,8 @@ object SF2Spark2Tg {
     val tasks: ArrayBuffer[Future[Unit]] = new ArrayBuffer[Future[Unit]]()
 
     for (table <- tables) {
+      progressLogger.info("Begin task for table : " + table)
+
       val df: DataFrame = sfReader.readTable(dfReader, table)
       val task = writeDF2Tiger(spark, df, table, snowFlakeSupport)
       tasks += task

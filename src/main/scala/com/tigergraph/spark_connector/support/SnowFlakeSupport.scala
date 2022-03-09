@@ -22,8 +22,17 @@ class SnowFlakeSupport(val supportName: String, val path: String) extends Suppor
   }
 
   def getTableInfo(table: String): (String, String) = {
-    val sf2TigerKV = config.get("mappingRules")
-      .asInstanceOf[util.HashMap[String, Object]].get(table).asInstanceOf[util.HashMap[String, Object]]
+    val tgMapping: util.HashMap[String, Object] = config.get("mappingRules")
+      .asInstanceOf[util.HashMap[String, Object]]
+
+    import scala.collection.JavaConversions._
+
+    var tgMap = new util.HashMap[String, Object]()
+    for (key <- tgMapping.keySet()) {
+      tgMap.put(key.toUpperCase, tgMapping.get(key))
+    }
+
+    val sf2TigerKV = tgMap.get(table).asInstanceOf[util.HashMap[String, Object]]
 
     val jobName = sf2TigerKV.get("dbtable").toString
 
@@ -33,8 +42,17 @@ class SnowFlakeSupport(val supportName: String, val path: String) extends Suppor
   }
 
   def getLoadingJobInfo(table: String): util.HashMap[String, String] = {
-    val sf2TigerKV = config.get("mappingRules")
-      .asInstanceOf[util.HashMap[String, Object]].get(table).asInstanceOf[util.HashMap[String, Object]]
+    val tgMapping: util.HashMap[String, Object] = config.get("mappingRules")
+      .asInstanceOf[util.HashMap[String, Object]]
+
+    import scala.collection.JavaConversions._
+
+    var tgMap = new util.HashMap[String, Object]()
+    for (key <- tgMapping.keySet()) {
+      tgMap.put(key.toUpperCase, tgMapping.get(key))
+    }
+
+    val sf2TigerKV = tgMap.get(table).asInstanceOf[util.HashMap[String, Object]]
 
     val tigerMap = sf2TigerKV.get("jobConfig").asInstanceOf[util.HashMap[String, Object]]
     val filename = tigerMap.get("filename").asInstanceOf[String]

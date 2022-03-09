@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions._
 
 
-class SnowFlakeReader(val readerName: String, val path: String, val password: String = "") extends Reader with Cloneable with Logging with Serializable {
+class SnowFlakeReader(val readerName: String, val path: String) extends Reader with Cloneable with Logging with Serializable {
 
   private val sfConf = new ConcurrentHashMap[String, String]()
   private val tables = new ArrayBuffer[String]()
@@ -29,20 +29,18 @@ class SnowFlakeReader(val readerName: String, val path: String, val password: St
   private val PARAM_PEM_PRIVATE_KEY = "pem_private_key"
   private val PARAM_SF_ROLE= "sfrole"
 
-  def this(path: String, password: String) = {
+  def this(path: String) = {
     // default parameters
-    this("SfReader", path, password)
+    this("SfReader", path)
     init(path)
-    initSfConf(password)
+    initSfConf()
   }
 
-  private def initSfConf(password: String): Unit = {
+  private def initSfConf(): Unit = {
     sfConf.put(SF_URL, config.get(SF_URL).toString)
     sfConf.put(SF_USER, config.get(SF_USER).toString)
 
-    if (null != password && (! password.isEmpty)) {
-      sfConf.put(SF_PASSWORD, password)
-    } else if (null != config.get(SF_PASSWORD)) {
+    if (null != config.get(SF_PASSWORD)) {
       sfConf.put(SF_PASSWORD, config.get(SF_PASSWORD).toString)
     }
 
@@ -50,7 +48,7 @@ class SnowFlakeReader(val readerName: String, val path: String, val password: St
     sfConf.put(SF_SCHEMA, config.get(SF_SCHEMA).toString)
 
     if (null != config.get(SF_WAREHOUSE)) {
-     sfConf.put(SF_WAREHOUSE, config.get(SF_WAREHOUSE).toString)
+      sfConf.put(SF_WAREHOUSE, config.get(SF_WAREHOUSE).toString)
     }
 
     if (null != config.get(SF_APPLICATION)) {
@@ -68,7 +66,7 @@ class SnowFlakeReader(val readerName: String, val path: String, val password: St
     val tableList: util.List[String] = config.get(SF_DBTABLE).asInstanceOf[util.List[String]]
     if (tableList != null) {
       for (elem <- tableList) {
-        tables += elem
+        tables += elem.toUpperCase()
       }
     }
   }
@@ -94,7 +92,7 @@ class SnowFlakeReader(val readerName: String, val path: String, val password: St
   }
 
   override def reader(spark: SparkSession): DataFrameReader = {
-  checkSfConf
+    checkSfConf
     val reader: DataFrameReader = spark.read
       .format(SNOWFLAKE_SOURCE_NAME)
       .options(sfConf)
@@ -103,6 +101,16 @@ class SnowFlakeReader(val readerName: String, val path: String, val password: St
 
   override def getTables(): ArrayBuffer[String] = {
     tables
+  }
+
+  override def getPassword(): String = {
+    sfConf.get(SF_PASSWORD)
+  }
+
+  override def setPassword(password: String) = {
+    if (null != password && (! password.isEmpty)) {
+      sfConf.put(SF_PASSWORD, password)
+    }
   }
 
   override def readTable(df: DataFrameReader, table: String): DataFrame = {

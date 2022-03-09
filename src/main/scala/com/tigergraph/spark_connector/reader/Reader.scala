@@ -20,6 +20,10 @@ trait Reader {
 
   def reader(spark: SparkSession): DataFrameReader
 
+  def getPassword(): String
+
+  def setPassword(password: String)
+
   def getTables(): ArrayBuffer[String]
 
   def readTable(df: DataFrameReader, table: String): DataFrame
